@@ -2,6 +2,7 @@
 
 import React from 'react';
 import { useProcurement } from '../../context/ProcurementContext';
+import { useInventory } from '../../context/InventoryContext';
 import Sidebar from '../../components/Sidebar';
 import Header from '../../components/Header';
 import ProcurementSubNavigation from '../../components/procurement/ProcurementSubNavigation';
@@ -11,16 +12,23 @@ import POWorkspace from '../../components/procurement/POWorkspace';
 import GRNWorkspace from '../../components/procurement/GRNWorkspace';
 import ProcurementWidgetStack from '../../components/procurement/ProcurementWidgetStack';
 
-// Modals & Drawers
+// Modals, Drawers & Login
 import PRDrawer from '../../components/procurement/PRDrawer';
 import PODrawer from '../../components/procurement/PODrawer';
 import SupplierDrawer from '../../components/procurement/SupplierDrawer';
 import ApprovalModal from '../../components/procurement/ApprovalModal';
 import GRNModal from '../../components/procurement/GRNModal';
 import InvoiceModal from '../../components/procurement/InvoiceModal';
+import LoginGateway from '../../components/LoginGateway';
 
 export default function ProcurementPage() {
   const { activeTab } = useProcurement();
+  const { isAuthenticated } = useInventory();
+
+  // Route protection - Force Login Gateway if unauthenticated
+  if (!isAuthenticated) {
+    return <LoginGateway />;
+  }
 
   // Dynamically swap the central procurement workspaces
   const renderWorkspace = () => {
@@ -39,7 +47,7 @@ export default function ProcurementPage() {
   };
 
   return (
-    <div className="flex h-screen w-screen overflow-hidden bg-slate-100 font-sans text-slate-900 antialiased">
+    <div className="flex h-screen w-screen overflow-hidden bg-slate-100 font-sans text-slate-900 antialiased animate-fade-in">
       {/* Column 1: Left Navigation Sidebar */}
       <Sidebar />
 

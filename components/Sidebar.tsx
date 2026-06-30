@@ -19,7 +19,8 @@ import {
   ClipboardList,
   Users,
   ShoppingCart,
-  PackageCheck
+  PackageCheck,
+  Home
 } from 'lucide-react';
 
 export default function Sidebar() {
@@ -202,6 +203,22 @@ export default function Sidebar() {
       <div className={`border-t border-[#23531B]/40 py-3 space-y-1 transition-all duration-300 ${
         isSidebarCollapsed ? 'px-2' : 'px-3'
       }`}>
+        <button
+          onClick={() => {
+            if (isProcurementPage) {
+              router.push('/');
+            }
+            invContext.setCurrentView('launchpad');
+          }}
+          title={isSidebarCollapsed ? 'Exit to Launchpad' : undefined}
+          className={`w-full flex items-center rounded-lg text-xs font-bold text-[#c2e4bb] hover:bg-[#3E7D32]/40 hover:text-white transition-all ${
+            isSidebarCollapsed ? 'justify-center p-3' : 'gap-3 px-4 py-2.5'
+          }`}
+        >
+          <Home className="w-4 h-4 text-[#aee2a4] shrink-0" />
+          {!isSidebarCollapsed && <span>Exit to Launchpad</span>}
+        </button>
+
         <button
           onClick={handleSettingsClick}
           title={isSidebarCollapsed ? 'Settings' : undefined}

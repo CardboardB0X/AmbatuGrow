@@ -15,10 +15,24 @@ import TransferWizard from '../components/TransferWizard';
 import SettingsModal from '../components/SettingsModal';
 import SupportModal from '../components/SupportModal';
 
-export default function Home() {
-  const { activeTab } = useInventory();
+// Modals, Launchpad & Login
+import LoginGateway from '../components/LoginGateway';
+import CentralLaunchpad from '../components/CentralLaunchpad';
 
-  // Dynamically swap the central workspace view
+export default function Home() {
+  const { activeTab, isAuthenticated, currentView } = useInventory();
+
+  // Route protection - Force Login Gateway if unauthenticated
+  if (!isAuthenticated) {
+    return <LoginGateway />;
+  }
+
+  // Render Launchpad Hub directory
+  if (currentView === 'launchpad') {
+    return <CentralLaunchpad />;
+  }
+
+  // Dynamically swap the central workspace view when inside Inventory dashboard
   const renderWorkspace = () => {
     switch (activeTab) {
       case 'Tracking':
@@ -35,7 +49,7 @@ export default function Home() {
   };
 
   return (
-    <div className="flex h-screen w-screen overflow-hidden bg-slate-100 font-sans text-slate-900 antialiased">
+    <div className="flex h-screen w-screen overflow-hidden bg-slate-100 font-sans text-slate-900 antialiased animate-fade-in">
       {/* Column 1: Left Navigation Sidebar */}
       <Sidebar />
 

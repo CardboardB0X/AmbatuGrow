@@ -65,6 +65,14 @@ interface InventoryContextType {
   
   // Zones Info
   zones: WarehouseZone[];
+
+  // Authentication & View states
+  isAuthenticated: boolean;
+  setIsAuthenticated: (auth: boolean) => void;
+  userRole: 'System Administrator' | 'Inventory Officer' | 'Procurement Officer';
+  setUserRole: (role: 'System Administrator' | 'Inventory Officer' | 'Procurement Officer') => void;
+  currentView: 'launchpad' | 'inventory';
+  setCurrentView: (view: 'launchpad' | 'inventory') => void;
 }
 
 const InventoryContext = createContext<InventoryContextType | undefined>(undefined);
@@ -246,7 +254,30 @@ export const InventoryProvider: React.FC<{ children: React.ReactNode }> = ({ chi
   const [isNotificationsOpen, setIsNotificationsOpen] = useState(false);
   const [isQuickMenuOpen, setIsQuickMenuOpen] = useState(false);
 
-  // Load from local storage
+  // Authentication & View states
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [userRole, setUserRole] = useState<'System Administrator' | 'Inventory Officer' | 'Procurement Officer'>('System Administrator');
+  const [currentView, setCurrentView] = useState<'launchpad' | 'inventory'>('launchpad');
+
+  const updateAuth = (auth: boolean) => {
+    setIsAuthenticated(auth);
+    localStorage.setItem('erp_auth', String(auth));
+    if (!auth) {
+      localStorage.removeItem('erp_auth');
+      localStorage.removeItem('erp_view');
+    }
+  };
+
+  const updateRole = (role: 'System Administrator' | 'Inventory Officer' | 'Procurement Officer') => {
+    setUserRole(role);
+    localStorage.setItem('erp_role', role);
+  };
+
+  const updateView = (view: 'launchpad' | 'inventory') => {
+    setCurrentView(view);
+    localStorage.setItem('erp_view', view);
+  };
+
   useEffect(() => {
     const savedItems = localStorage.getItem('erp_items');
     const savedTransactions = localStorage.getItem('erp_transactions');
@@ -255,6 +286,14 @@ export const InventoryProvider: React.FC<{ children: React.ReactNode }> = ({ chi
     if (savedItems) setItems(JSON.parse(savedItems));
     if (savedTransactions) setTransactions(JSON.parse(savedTransactions));
     if (savedLogs) setLogs(JSON.parse(savedLogs));
+
+    const savedAuth = localStorage.getItem('erp_auth');
+    const savedRole = localStorage.getItem('erp_role');
+    const savedView = localStorage.getItem('erp_view');
+    
+    if (savedAuth === 'true') setIsAuthenticated(true);
+    if (savedRole) setUserRole(savedRole as 'System Administrator' | 'Inventory Officer' | 'Procurement Officer');
+    if (savedView) setCurrentView(savedView as 'launchpad' | 'inventory');
   }, []);
 
   // Save to local storage
@@ -633,6 +672,12 @@ export const InventoryProvider: React.FC<{ children: React.ReactNode }> = ({ chi
       isQuickMenuOpen,
       setIsQuickMenuOpen,
       zones,
+      isAuthenticated,
+      setIsAuthenticated: updateAuth,
+      userRole,
+      setUserRole: updateRole,
+      currentView,
+      setCurrentView: updateView,
     }}>
       {children}
     </InventoryContext.Provider>
