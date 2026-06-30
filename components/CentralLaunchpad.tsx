@@ -1,8 +1,7 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import Image from 'next/image';
 import { useInventory } from '../context/InventoryContext';
 import { 
   Layers, 
@@ -16,10 +15,6 @@ import {
   Globe, 
   BarChart3, 
   Lock, 
-  Search, 
-  Bell, 
-  Grid, 
-  LogOut, 
   Loader2 
 } from 'lucide-react';
 
@@ -29,36 +24,20 @@ interface ModuleCard {
   description: string;
   icon: React.ElementType;
   telemetryText: string;
-  telemetryColor: string; // Tailwind bg class
-  allowedRoles: string[]; // roles that can access this card
-  routePath?: string;
-  action?: () => void;
+  telemetryColor: string;
+  allowedRoles: string[];
 }
 
 export default function CentralLaunchpad() {
   const router = useRouter();
   const { 
-    setIsAuthenticated, 
     userRole, 
-    setUserRole, 
-    setCurrentView 
+    setCurrentView,
+    searchQuery
   } = useInventory();
 
-  const [searchQuery, setSearchQuery] = useState('');
   const [loadingModule, setLoadingModule] = useState<string | null>(null);
-  const [showRoleDropdown, setShowRoleDropdown] = useState(false);
   const [successToast, setSuccessToast] = useState<string | null>(null);
-
-  // Close dropdown on click outside
-  useEffect(() => {
-    const handleClose = () => setShowRoleDropdown(false);
-    window.addEventListener('click', handleClose);
-    return () => window.removeEventListener('click', handleClose);
-  }, []);
-
-  const handleSignOut = () => {
-    setIsAuthenticated(false);
-  };
 
   const handleLaunchModule = (mod: ModuleCard) => {
     setLoadingModule(mod.title);
@@ -176,7 +155,7 @@ export default function CentralLaunchpad() {
   );
 
   return (
-    <div className="min-h-screen bg-slate-50 flex flex-col font-sans select-none relative">
+    <div className="flex-1 bg-slate-50 flex flex-col font-sans select-none relative overflow-y-auto min-h-0">
       
       {/* ── FULL SCREEN ROUTE LOADER SIMULATION ── */}
       {loadingModule && (
@@ -202,130 +181,6 @@ export default function CentralLaunchpad() {
           </div>
         </div>
       )}
-
-      {/* ── TOP NAVIGATION HEADER BAR ── */}
-      <header className="h-16 bg-white border-b border-slate-200 px-8 flex items-center justify-between flex-shrink-0 z-30 sticky top-0 shadow-sm">
-        
-        {/* Left Area: branding */}
-        <div className="flex items-center gap-3">
-          <div className="w-8 h-8 bg-white rounded-lg shadow-sm border border-slate-100 p-1 flex items-center justify-center shrink-0">
-            <Image
-              src="/logo.png"
-              alt="Logo"
-              width={24}
-              height={24}
-              className="object-contain"
-            />
-          </div>
-          
-          <h2 className="text-sm font-black text-slate-800 tracking-wider">
-            AMBATUGROW ERP
-          </h2>
-          <span className="text-[9px] font-extrabold text-slate-400 bg-slate-100 px-2 py-0.5 rounded-full uppercase tracking-wider">
-            Main Launchpad
-          </span>
-        </div>
-
-        {/* Middle Area: Wide Command Search */}
-        <div className="flex-1 max-w-md mx-6 relative">
-          <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400">
-            <Search className="w-4 h-4" />
-          </div>
-          <input
-            type="text"
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            placeholder="Search enterprise directories..."
-            className="w-full pl-9 pr-4 py-1.5 text-xs bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#2D6A24]/20 focus:border-[#2D6A24] focus:bg-white placeholder-slate-400 font-semibold text-slate-600 transition-all"
-          />
-        </div>
-
-        {/* Right Area: Profile / Roles */}
-        <div className="flex items-center gap-4">
-          
-          {/* Icons */}
-          <button className="p-1.5 text-slate-400 hover:text-slate-600 hover:bg-slate-50 rounded-lg transition-colors cursor-pointer">
-            <Bell className="w-4.5 h-4.5" />
-          </button>
-          
-          <button className="p-1.5 text-slate-400 hover:text-slate-600 hover:bg-slate-50 rounded-lg transition-colors cursor-pointer">
-            <Grid className="w-4.5 h-4.5" />
-          </button>
-
-          <div className="h-6 w-px bg-slate-200"></div>
-
-          {/* User profile capsule with dropdown */}
-          <div className="relative">
-            <button 
-              onClick={(e) => {
-                e.stopPropagation();
-                setShowRoleDropdown(!showRoleDropdown);
-              }}
-              className="flex items-center gap-2.5 p-1 px-2.5 hover:bg-slate-50 border border-slate-200/80 rounded-xl transition-all cursor-pointer text-left focus:outline-none"
-            >
-              <div className="w-8 h-8 rounded-full bg-[#D1E2FF] shrink-0 shadow-inner flex items-center justify-center font-black text-xs text-blue-700">
-                AD
-              </div>
-              <div className="hidden sm:block">
-                <div className="text-[10px] font-black text-slate-700 leading-tight">
-                  Chopaw Administrator
-                </div>
-                <div className="text-[8px] font-bold text-slate-400 uppercase tracking-wider mt-0.5">
-                  Role: {userRole}
-                </div>
-              </div>
-            </button>
-
-            {/* Role Switcher Dropdown */}
-            {showRoleDropdown && (
-              <div className="absolute right-0 mt-2 w-52 bg-white border border-slate-200 rounded-xl shadow-xl z-50 py-1.5 overflow-hidden animate-fade-in">
-                <span className="block px-3.5 py-1 text-[8px] font-black text-slate-400 uppercase tracking-widest border-b border-slate-100">
-                  Switch Active Role
-                </span>
-                
-                <button
-                  onClick={() => setUserRole('System Administrator')}
-                  className={`w-full text-left px-3.5 py-2 text-xs font-bold transition-colors cursor-pointer ${
-                    userRole === 'System Administrator' ? 'text-[#2D6A24] bg-emerald-50/50' : 'text-slate-600 hover:bg-slate-50'
-                  }`}
-                >
-                  System Administrator
-                </button>
-                
-                <button
-                  onClick={() => setUserRole('Inventory Officer')}
-                  className={`w-full text-left px-3.5 py-2 text-xs font-bold transition-colors cursor-pointer ${
-                    userRole === 'Inventory Officer' ? 'text-[#2D6A24] bg-emerald-50/50' : 'text-slate-600 hover:bg-slate-50'
-                  }`}
-                >
-                  Inventory Officer
-                </button>
-                
-                <button
-                  onClick={() => setUserRole('Procurement Officer')}
-                  className={`w-full text-left px-3.5 py-2 text-xs font-bold transition-colors cursor-pointer ${
-                    userRole === 'Procurement Officer' ? 'text-[#2D6A24] bg-emerald-50/50' : 'text-slate-600 hover:bg-slate-50'
-                  }`}
-                >
-                  Procurement Officer
-                </button>
-
-                <div className="h-px bg-slate-100 my-1"></div>
-
-                <button
-                  onClick={handleSignOut}
-                  className="w-full text-left px-3.5 py-2 text-xs font-bold text-red-600 hover:bg-red-50 transition-colors cursor-pointer flex items-center gap-2"
-                >
-                  <LogOut className="w-3.5 h-3.5" />
-                  <span>Sign Out</span>
-                </button>
-              </div>
-            )}
-          </div>
-
-        </div>
-
-      </header>
 
       {/* ── BENTO GRID CONTAINER ── */}
       <main className="flex-1 p-8 overflow-y-auto">

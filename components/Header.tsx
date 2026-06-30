@@ -13,6 +13,7 @@ export default function Header() {
 
   const {
     activeTab,
+    currentView,
     searchQuery,
     setSearchQuery,
     items,
@@ -60,6 +61,10 @@ export default function Header() {
         default:
           return 'Procurement Control Center';
       }
+    }
+
+    if (currentView === 'launchpad') {
+      return 'Central Application Launchpad';
     }
 
     switch (activeTab) {
