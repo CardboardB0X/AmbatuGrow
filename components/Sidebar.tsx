@@ -33,7 +33,8 @@ import {
   Lock,
   Database,
   ShieldCheck,
-  Activity
+  Activity,
+  LogOut
 } from 'lucide-react';
 
 interface Tier1Module {
@@ -53,16 +54,31 @@ export default function Sidebar() {
   const invContext = useInventory();
   const procContext = useProcurement();
 
-  const { isSidebarCollapsed, setIsSidebarCollapsed, userRole, setCurrentView } = invContext;
+  const { 
+    isSidebarCollapsed, 
+    setIsSidebarCollapsed, 
+    userRole, 
+    setUserRole, 
+    setIsAuthenticated, 
+    setCurrentView 
+  } = invContext;
 
   // Active module state for Tier 1 selection
   const [activeTier1, setActiveTier1] = useState(isProcurementPage ? 'procurement' : 'inventory');
   const [toastMessage, setToastMessage] = useState<string | null>(null);
+  const [showUserMenu, setShowUserMenu] = useState(false);
 
   // Sync active Tier 1 when route changes
   useEffect(() => {
     setActiveTier1(isProcurementPage ? 'procurement' : 'inventory');
   }, [isProcurementPage]);
+
+  // Close dropdown on click outside
+  useEffect(() => {
+    const handleClose = () => setShowUserMenu(false);
+    window.addEventListener('click', handleClose);
+    return () => window.removeEventListener('click', handleClose);
+  }, []);
 
   const handleSettingsClick = () => {
     invContext.setIsSettingsOpen(true);
@@ -70,6 +86,10 @@ export default function Sidebar() {
 
   const handleSupportClick = () => {
     invContext.setIsSupportOpen(true);
+  };
+
+  const handleSignOut = () => {
+    setIsAuthenticated(false);
   };
 
   const showToast = (msg: string) => {
@@ -258,7 +278,7 @@ export default function Sidebar() {
     <div className="flex h-full flex-shrink-0 select-none shadow-lg z-20">
       
       {/* ── TIER 1: ICON NAVIGATION BAR (FAR LEFT) ── */}
-      <div className="w-[72px] bg-[#1F4A18] flex flex-col justify-between items-center py-4 border-r border-[#153410]/65">
+      <div className="w-[72px] bg-[#1F4A18] flex flex-col justify-between items-center py-4 border-r border-[#153410]/65 relative">
         
         {/* Top Logo */}
         <div className="w-10 h-10 bg-white rounded-xl shadow-md flex items-center justify-center overflow-hidden p-1 select-none">
@@ -310,18 +330,109 @@ export default function Sidebar() {
           })}
         </div>
 
-        {/* Exit Button */}
+        {/* Bottom Actions Row */}
+        <div className="flex flex-col items-center gap-3 w-full">
+          {/* Exit Button */}
+          <button
+            onClick={() => {
+              if (isProcurementPage) {
+                router.push('/');
+              }
+              setCurrentView('launchpad');
+            }}
+            title="Exit to Launchpad Menu"
+            className="w-11 h-11 rounded-xl flex items-center justify-center text-emerald-300 hover:bg-emerald-800/35 hover:text-white transition-colors cursor-pointer"
+          >
+            <Home className="w-5 h-5 shrink-0" />
+          </button>
+
+          {/* User Profile Avatar at the bottom of Tier 1 */}
+          <div className="relative">
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                setShowUserMenu(!showUserMenu);
+              }}
+              className="w-10 h-10 rounded-full bg-[#D1E2FF] flex items-center justify-center font-black text-xs text-blue-700 hover:scale-105 transition-all border border-emerald-300/35 cursor-pointer shadow-sm focus:outline-none"
+            >
+              AD
+            </button>
+
+            {/* User Menu Dropdown (Popup) */}
+            {showUserMenu && (
+              <div className="absolute left-16 bottom-0 w-52 bg-white border border-slate-200 rounded-xl shadow-2xl z-50 py-1.5 overflow-hidden text-slate-800 animate-fade-in">
+                <div className="px-3.5 py-2 border-b border-slate-100 bg-slate-50/50">
+                  <div className="text-[10px] font-black text-slate-700 leading-tight">
+                    Chopaw Administrator
+                  </div>
+                  <div className="text-[8px] font-bold text-slate-400 uppercase tracking-wider mt-0.5 font-mono">
+                    Role: {userRole}
+                  </div>
+                </div>
+
+                <span className="block px-3.5 py-1 text-[8px] font-black text-slate-400 uppercase tracking-widest mt-1">
+                  Switch Active Role
+                </span>
+                
+                <button
+                  onClick={() => setUserRole('System Administrator')}
+                  className={`w-full text-left px-3.5 py-1.5 text-xs font-bold transition-colors cursor-pointer ${
+                    userRole === 'System Administrator' ? 'text-[#2D6A24] bg-emerald-50/50 font-black' : 'text-slate-600 hover:bg-slate-50'
+                  }`}
+                >
+                  System Administrator
+                </button>
+                
+                <button
+                  onClick={() => setUserRole('Inventory Officer')}
+                  className={`w-full text-left px-3.5 py-1.5 text-xs font-bold transition-colors cursor-pointer ${
+                    userRole === 'Inventory Officer' ? 'text-[#2D6A24] bg-emerald-50/50 font-black' : 'text-slate-600 hover:bg-slate-50'
+                  }`}
+                >
+                  Inventory Officer
+                </button>
+                
+                <button
+                  onClick={() => setUserRole('Procurement Officer')}
+                  className={`w-full text-left px-3.5 py-1.5 text-xs font-bold transition-colors cursor-pointer ${
+                    userRole === 'Procurement Officer' ? 'text-[#2D6A24] bg-emerald-50/50 font-black' : 'text-slate-600 hover:bg-slate-50'
+                  }`}
+                >
+                  Procurement Officer
+                </button>
+
+                <div className="h-px bg-slate-100 my-1"></div>
+
+                <button
+                  onClick={handleSignOut}
+                  className="w-full text-left px-3.5 py-2 text-xs font-bold text-red-600 hover:bg-red-50 transition-colors cursor-pointer flex items-center gap-2"
+                >
+                  <LogOut className="w-3.5 h-3.5 text-red-500 shrink-0" />
+                  <span>Sign Out</span>
+                </button>
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* ── Slide collapse button anchored to Tier 1 but overlays exactly on right edge of Tier 2 ── */}
         <button
-          onClick={() => {
-            if (isProcurementPage) {
-              router.push('/');
-            }
-            invContext.setCurrentView('launchpad');
+          onClick={() => setIsSidebarCollapsed(!isSidebarCollapsed)}
+          title={isSidebarCollapsed ? 'Expand sub-navigation' : 'Collapse sub-navigation'}
+          className="absolute top-1/2 -translate-y-1/2 z-30
+                     w-6 h-6 rounded-full
+                     bg-[#3E7D32] hover:bg-[#23531B]
+                     border border-emerald-300/40
+                     flex items-center justify-center
+                     text-white shadow-md
+                     hover:scale-110 transition-all duration-300 cursor-pointer"
+          style={{
+            left: isSidebarCollapsed ? '60px' : '268px',
           }}
-          title="Exit to Launchpad Menu"
-          className="w-11 h-11 rounded-xl flex items-center justify-center text-emerald-300 hover:bg-red-800/40 hover:text-red-200 transition-colors cursor-pointer"
         >
-          <Home className="w-5 h-5 shrink-0" />
+          {isSidebarCollapsed
+            ? <ChevronRight className="w-3.5 h-3.5" />
+            : <ChevronLeft  className="w-3.5 h-3.5" />}
         </button>
 
       </div>
@@ -331,43 +442,31 @@ export default function Sidebar() {
         isSidebarCollapsed ? 'w-0 border-r-0' : 'w-52'
       }`}>
         
-        {/* Collapse toggle pill – centered vertically on the right edge of Tier 2 */}
-        <button
-          onClick={() => setIsSidebarCollapsed(!isSidebarCollapsed)}
-          title={isSidebarCollapsed ? 'Expand sub-navigation' : 'Collapse sub-navigation'}
-          className="absolute -right-3 top-1/2 -translate-y-1/2 z-30
-                     w-6 h-6 rounded-full
-                     bg-[#3E7D32] hover:bg-[#23531B]
-                     border border-emerald-300/40
-                     flex items-center justify-center
-                     text-white shadow-md
-                     hover:scale-110 transition-all cursor-pointer"
-        >
-          {isSidebarCollapsed
-            ? <ChevronRight className="w-3.5 h-3.5" />
-            : <ChevronLeft  className="w-3.5 h-3.5" />}
-        </button>
+        {/* Inner Content that clips correctly during width transition */}
+        <div className="w-full flex-1 flex flex-col justify-between min-w-[208px] overflow-hidden h-full">
+          
+          {/* Dynamic sub navigation links */}
+          {renderTier2Content()}
 
-        {/* Dynamic sub navigation links */}
-        {renderTier2Content()}
+          {/* Settings & Support in Tier 2 Footer */}
+          <div className="border-t border-[#23531B]/40 p-3 space-y-1 bg-[#23531B]/20 flex-shrink-0">
+            <button
+              onClick={handleSettingsClick}
+              className="w-full flex items-center gap-2.5 px-3 py-2 text-xs font-bold text-[#c2e4bb] hover:bg-[#3E7D32]/40 hover:text-white transition-all text-left cursor-pointer"
+            >
+              <Settings className="w-4 h-4 text-[#aee2a4] shrink-0" />
+              <span>Settings</span>
+            </button>
 
-        {/* Settings & Support in Tier 2 Footer */}
-        <div className="border-t border-[#23531B]/40 p-3 space-y-1 bg-[#23531B]/20">
-          <button
-            onClick={handleSettingsClick}
-            className="w-full flex items-center gap-2.5 px-3 py-2 text-xs font-bold text-[#c2e4bb] hover:bg-[#3E7D32]/40 hover:text-white transition-all text-left cursor-pointer"
-          >
-            <Settings className="w-4 h-4 text-[#aee2a4] shrink-0" />
-            <span>Settings</span>
-          </button>
+            <button
+              onClick={handleSupportClick}
+              className="w-full flex items-center gap-2.5 px-3 py-2 text-xs font-bold text-[#c2e4bb] hover:bg-[#3E7D32]/40 hover:text-white transition-all text-left cursor-pointer"
+            >
+              <HelpCircle className="w-4 h-4 text-[#aee2a4] shrink-0" />
+              <span>Support</span>
+            </button>
+          </div>
 
-          <button
-            onClick={handleSupportClick}
-            className="w-full flex items-center gap-2.5 px-3 py-2 text-xs font-bold text-[#c2e4bb] hover:bg-[#3E7D32]/40 hover:text-white transition-all text-left cursor-pointer"
-          >
-            <HelpCircle className="w-4 h-4 text-[#aee2a4] shrink-0" />
-            <span>Support</span>
-          </button>
         </div>
 
         {/* Toast Notification Container inside Sidebar */}

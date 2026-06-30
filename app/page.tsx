@@ -27,11 +27,6 @@ export default function Home() {
     return <LoginGateway />;
   }
 
-  // Render Launchpad Hub directory
-  if (currentView === 'launchpad') {
-    return <CentralLaunchpad />;
-  }
-
   // Dynamically swap the central workspace view when inside Inventory dashboard
   const renderWorkspace = () => {
     switch (activeTab) {
@@ -60,18 +55,18 @@ export default function Home() {
         <Header />
 
         {/* Sub-Navigation Tabs Row */}
-        <SubNavigation />
+        {currentView !== 'launchpad' && <SubNavigation />}
 
         {/* Bottom Section: Workspace + Right Widgets */}
         <div className="flex-1 flex min-h-0 overflow-hidden">
           
           {/* Column 2: Central Core Workspace (Dynamic views) */}
           <main className="flex-1 flex flex-col min-h-0 overflow-hidden">
-            {renderWorkspace()}
+            {currentView === 'launchpad' ? <CentralLaunchpad /> : renderWorkspace()}
           </main>
 
           {/* Column 3: Right-Side Contextual Widget Stack */}
-          <WidgetStack />
+          {currentView !== 'launchpad' && <WidgetStack />}
 
         </div>
 
