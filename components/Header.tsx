@@ -1,10 +1,16 @@
 'use client';
 
 import React, { useRef, useEffect } from 'react';
+import { usePathname } from 'next/navigation';
 import { useInventory } from '../context/InventoryContext';
+import { useProcurement } from '../context/ProcurementContext';
 import { Search, Bell, Grid, AlertTriangle, Plus, ArrowRightLeft, Database } from 'lucide-react';
 
 export default function Header() {
+  const pathname = usePathname();
+  const isProcurementPage = pathname ? pathname.startsWith('/procurement') : false;
+  const procContext = useProcurement();
+
   const {
     activeTab,
     searchQuery,
@@ -41,6 +47,21 @@ export default function Header() {
 
   // Get view title based on active tab
   const getTerminalTitle = () => {
+    if (isProcurementPage) {
+      switch (procContext.activeTab) {
+        case 'Requisitions':
+          return 'Purchase & Requisition Approvals';
+        case 'Suppliers':
+          return 'Supplier Directory & Relations';
+        case 'Purchase Orders':
+          return 'Purchase Order Management';
+        case 'Goods Receipt':
+          return 'Goods Receipt & Invoice Matching';
+        default:
+          return 'Procurement Control Center';
+      }
+    }
+
     switch (activeTab) {
       case 'Tracking':
         return 'Inventory Tracking Terminal';

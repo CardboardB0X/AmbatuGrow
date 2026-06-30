@@ -34,6 +34,7 @@ interface InventoryContextType {
   bulkDelete: () => void;
   bulkStatusChange: (status: 'Active' | 'Obsolete') => void;
   transferItems: (sku: string, srcZone: string, destZone: string, qty: number) => boolean;
+  createStockIn: (sku: string, qty: number, operator: string, zone?: string) => void;
   generateRequisitionOrder: (items: { sku: string; qty: number }[]) => void;
   logActivity: (message: string, sku?: string) => void;
   
@@ -502,6 +503,56 @@ export const InventoryProvider: React.FC<{ children: React.ReactNode }> = ({ chi
     return true;
   };
 
+  const createStockIn = (sku: string, qty: number, operator: string, zone?: string) => {
+    const targetZone = zone || 'Warehouse A - Zone 1';
+    let prevItem = items.find(i => i.sku === sku && i.zone === targetZone);
+    if (!prevItem) {
+      prevItem = items.find(i => i.sku === sku);
+    }
+    
+    let updatedItems = [...items];
+    if (prevItem) {
+      updatedItems = items.map(item => 
+        (item.sku === sku && item.zone === prevItem.zone) 
+          ? { ...item, stockQty: item.stockQty + qty }
+          : item
+      );
+    } else {
+      const newItem: InventoryItem = {
+        sku,
+        name: sku,
+        description: 'Auto-created from Goods Receipt Note',
+        category: 'Uncategorized',
+        stockQty: qty,
+        uom: 'Units',
+        status: 'Active',
+        minQty: 10,
+        maxQty: 100,
+        zone: targetZone
+      };
+      updatedItems.push(newItem);
+    }
+    
+    const newTx: Transaction = {
+      id: `TX-${Date.now()}`,
+      timestamp: new Date().toISOString(),
+      sku,
+      type: 'Stock-In',
+      qty,
+      operator
+    };
+    
+    const newLog: SystemLog = {
+      id: `LOG-${Date.now()}`,
+      message: `[GRN STOCK-IN] Received +${qty} of SKU: ${sku} via Goods Receipt Note by ${operator}`,
+      timestamp: new Date().toISOString(),
+      sku,
+      operator
+    };
+    
+    saveState(updatedItems, [newTx, ...transactions], [newLog, ...logs]);
+  };
+
   // Requisition generator
   const generateRequisitionOrder = (reqItems: { sku: string; qty: number }[]) => {
     const listString = reqItems.map(ri => {
@@ -558,6 +609,7 @@ export const InventoryProvider: React.FC<{ children: React.ReactNode }> = ({ chi
       bulkDelete,
       bulkStatusChange,
       transferItems,
+      createStockIn,
       generateRequisitionOrder,
       logActivity,
       isDrawerOpen,

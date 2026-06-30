@@ -2,8 +2,11 @@
 
 import React from 'react';
 import Image from 'next/image';
+import { usePathname, useRouter } from 'next/navigation';
 import { useInventory } from '../context/InventoryContext';
+import { useProcurement } from '../context/ProcurementContext';
 import { SubNavigationTab } from '../types/inventory';
+import { ProcurementTab } from '../types/procurement';
 import { 
   ArrowLeftRight, 
   MapPin, 
@@ -12,35 +15,65 @@ import {
   HelpCircle,
   Package,
   ChevronLeft,
-  ChevronRight
+  ChevronRight,
+  ClipboardList,
+  Users,
+  ShoppingCart,
+  PackageCheck
 } from 'lucide-react';
 
 export default function Sidebar() {
-  const { 
-    activeTab, 
-    setActiveTab, 
-    clearSelection,
-    isSidebarCollapsed,
-    setIsSidebarCollapsed,
-    setIsSettingsOpen,
-    setIsSupportOpen
-  } = useInventory();
+  const pathname = usePathname();
+  const router = useRouter();
+  const isProcurementPage = pathname ? pathname.startsWith('/procurement') : false;
 
-  const menuItems = [
-    { id: 'Tracking' as SubNavigationTab,        label: 'Inventory Tracking',             icon: Package },
-    { id: 'Transactions' as SubNavigationTab,    label: 'Stock Transactions',             icon: ArrowLeftRight },
-    { id: 'Locations' as SubNavigationTab,       label: 'Warehouse Location Tracking',    icon: MapPin },
-    { id: 'Reports & Alerts' as SubNavigationTab,label: 'Inventory Reporting & Alerts',  icon: AlertTriangle },
+  // Context Hooks
+  const invContext = useInventory();
+  const procContext = useProcurement();
+
+  // Collapsed State (synchronized through Inventory Context for layout consistency)
+  const { isSidebarCollapsed, setIsSidebarCollapsed } = invContext;
+
+  // Choose tab controller dynamically
+  const activeTab = isProcurementPage ? procContext.activeTab : invContext.activeTab;
+  
+  const handleTabChange = (tabId: string) => {
+    if (isProcurementPage) {
+      procContext.setActiveTab(tabId as ProcurementTab);
+    } else {
+      invContext.setActiveTab(tabId as SubNavigationTab);
+      invContext.clearSelection();
+    }
+  };
+
+  const handleSettingsClick = () => {
+    invContext.setIsSettingsOpen(true);
+  };
+
+  const handleSupportClick = () => {
+    invContext.setIsSupportOpen(true);
+  };
+
+  // Define Menu Items per Module
+  const inventoryMenu = [
+    { id: 'Tracking',        label: 'Inventory Tracking',             icon: Package },
+    { id: 'Transactions',    label: 'Stock Transactions',             icon: ArrowLeftRight },
+    { id: 'Locations',       label: 'Warehouse Location Tracking',    icon: MapPin },
+    { id: 'Reports & Alerts',label: 'Inventory Reporting & Alerts',  icon: AlertTriangle },
   ];
 
-  const handleTabChange = (tabId: SubNavigationTab) => {
-    setActiveTab(tabId);
-    clearSelection();
-  };
+  const procurementMenu = [
+    { id: 'Requisitions',    label: 'Purchase Requisitions',        icon: ClipboardList },
+    { id: 'Suppliers',       label: 'Supplier Management',          icon: Users },
+    { id: 'Purchase Orders', label: 'Purchase Order Management',    icon: ShoppingCart },
+    { id: 'Goods Receipt',   label: 'Goods Receipt & Invoice',      icon: PackageCheck },
+  ];
+
+  const menuItems = isProcurementPage ? procurementMenu : inventoryMenu;
 
   return (
     <aside
-      className={`relative bg-[#2D6A24] text-white flex flex-col justify-between flex-shrink-0 select-none shadow-lg transition-[width] duration-300 ease-in-out ${
+      className={`relative bg-[#2D6A24] text-white flex flex-col justify-between flex-shrink-0 select-none shadow-lg transition-[width] duration-300 ease-in-out z-20 ${
         isSidebarCollapsed ? 'w-[72px]' : 'w-64'
       }`}
     >
@@ -61,11 +94,11 @@ export default function Sidebar() {
           : <ChevronLeft  className="w-3.5 h-3.5" />}
       </button>
 
-      {/* ── Top block: logo + nav ── */}
+      {/* ── Top block: logo + switcher + nav ── */}
       <div className="flex flex-col min-h-0">
 
         {/* Branding header */}
-        <div className={`flex items-center gap-3 border-b border-[#23531B]/40 py-5 transition-all duration-300 ${
+        <div className={`flex items-center gap-3 border-[#23531B]/40 py-5 transition-all duration-300 ${
           isSidebarCollapsed ? 'px-3 justify-center' : 'px-5'
         }`}>
           {/* Logo image */}
@@ -95,6 +128,49 @@ export default function Sidebar() {
           )}
         </div>
 
+        {/* ── Module Switcher ── */}
+        {!isSidebarCollapsed ? (
+          <div className="px-4 py-1.5 bg-[#23531B]/30 flex rounded-xl mx-3.5 gap-1 text-[10px] font-black uppercase tracking-wider border border-[#23531B]/40">
+            <button
+              onClick={() => router.push('/')}
+              className={`flex-1 py-1 rounded-lg transition-colors text-center cursor-pointer ${
+                !isProcurementPage ? 'bg-[#3E7D32] text-white shadow-sm' : 'text-emerald-200/80 hover:text-white'
+              }`}
+            >
+              Inventory
+            </button>
+            <button
+              onClick={() => router.push('/procurement')}
+              className={`flex-1 py-1 rounded-lg transition-colors text-center cursor-pointer ${
+                isProcurementPage ? 'bg-[#3E7D32] text-white shadow-sm' : 'text-emerald-200/80 hover:text-white'
+              }`}
+            >
+              Procurement
+            </button>
+          </div>
+        ) : (
+          <div className="flex flex-col gap-1.5 items-center py-1.5 mx-2 bg-[#23531B]/20 rounded-xl border border-[#23531B]/35">
+            <button
+              onClick={() => router.push('/')}
+              title="Switch to Inventory"
+              className={`p-1.5 rounded-lg transition-colors cursor-pointer ${
+                !isProcurementPage ? 'bg-[#3E7D32] text-white' : 'text-emerald-300 hover:text-white'
+              }`}
+            >
+              <Package className="w-4 h-4" />
+            </button>
+            <button
+              onClick={() => router.push('/procurement')}
+              title="Switch to Procurement"
+              className={`p-1.5 rounded-lg transition-colors cursor-pointer ${
+                isProcurementPage ? 'bg-[#3E7D32] text-white' : 'text-emerald-300 hover:text-white'
+              }`}
+            >
+              <ShoppingCart className="w-4 h-4" />
+            </button>
+          </div>
+        )}
+
         {/* Navigation menu */}
         <nav className={`flex-1 py-4 space-y-1 transition-all duration-300 ${
           isSidebarCollapsed ? 'px-2' : 'px-3'
@@ -110,7 +186,7 @@ export default function Sidebar() {
                   isSidebarCollapsed ? 'justify-center p-3' : 'gap-3 px-4 py-3'
                 } ${
                   isActive
-                    ? 'bg-[#3E7D32] text-white shadow-inner'
+                    ? 'bg-[#3E7D32] text-white shadow-inner font-extrabold'
                     : 'text-[#c2e4bb] hover:bg-[#3E7D32]/40 hover:text-white'
                 }`}
               >
@@ -127,7 +203,7 @@ export default function Sidebar() {
         isSidebarCollapsed ? 'px-2' : 'px-3'
       }`}>
         <button
-          onClick={() => setIsSettingsOpen(true)}
+          onClick={handleSettingsClick}
           title={isSidebarCollapsed ? 'Settings' : undefined}
           className={`w-full flex items-center rounded-lg text-xs font-bold text-[#c2e4bb] hover:bg-[#3E7D32]/40 hover:text-white transition-all ${
             isSidebarCollapsed ? 'justify-center p-3' : 'gap-3 px-4 py-2.5'
@@ -138,7 +214,7 @@ export default function Sidebar() {
         </button>
 
         <button
-          onClick={() => setIsSupportOpen(true)}
+          onClick={handleSupportClick}
           title={isSidebarCollapsed ? 'Support' : undefined}
           className={`w-full flex items-center rounded-lg text-xs font-bold text-[#c2e4bb] hover:bg-[#3E7D32]/40 hover:text-white transition-all ${
             isSidebarCollapsed ? 'justify-center p-3' : 'gap-3 px-4 py-2.5'

@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import "./globals.css";
 import { InventoryProvider } from "../context/InventoryContext";
+import { ProcurementProvider } from "../context/ProcurementContext";
 
 const inter = Inter({
   subsets: ["latin"],
@@ -27,7 +28,9 @@ export default function RootLayout({
       </head>
       <body className="min-h-full bg-slate-50 text-slate-900 font-sans antialiased">
         <InventoryProvider>
-          {children}
+          <ProcurementProvider>
+            {children}
+          </ProcurementProvider>
         </InventoryProvider>
       </body>
     </html>

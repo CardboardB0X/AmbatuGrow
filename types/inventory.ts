@@ -9,6 +9,7 @@ export interface InventoryItem {
   minQty: number;
   maxQty: number;
   zone: string; // e.g. "Warehouse A - Zone 1"
+  onOrder?: boolean; // true when an active PO exists for this SKU
 }
 
 export interface Transaction {
