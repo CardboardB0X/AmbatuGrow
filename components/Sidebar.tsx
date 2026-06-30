@@ -1,6 +1,7 @@
+/* eslint-disable react-hooks/set-state-in-effect */
 'use client';
 
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import Image from 'next/image';
 import { usePathname, useRouter } from 'next/navigation';
 import { useInventory } from '../context/InventoryContext';
@@ -20,32 +21,48 @@ import {
   Users,
   ShoppingCart,
   PackageCheck,
-  Home
+  Home,
+  ShoppingBag,
+  Truck,
+  DollarSign,
+  LineChart,
+  LifeBuoy,
+  Briefcase,
+  Globe,
+  BarChart3,
+  Lock,
+  Database,
+  ShieldCheck,
+  Activity
 } from 'lucide-react';
+
+interface Tier1Module {
+  id: string;
+  title: string;
+  icon: React.ElementType;
+  route: string;
+  allowedRoles: string[];
+}
 
 export default function Sidebar() {
   const pathname = usePathname();
   const router = useRouter();
   const isProcurementPage = pathname ? pathname.startsWith('/procurement') : false;
 
-  // Context Hooks
+  // Contexts
   const invContext = useInventory();
   const procContext = useProcurement();
 
-  // Collapsed State (synchronized through Inventory Context for layout consistency)
-  const { isSidebarCollapsed, setIsSidebarCollapsed } = invContext;
+  const { isSidebarCollapsed, setIsSidebarCollapsed, userRole, setCurrentView } = invContext;
 
-  // Choose tab controller dynamically
-  const activeTab = isProcurementPage ? procContext.activeTab : invContext.activeTab;
-  
-  const handleTabChange = (tabId: string) => {
-    if (isProcurementPage) {
-      procContext.setActiveTab(tabId as ProcurementTab);
-    } else {
-      invContext.setActiveTab(tabId as SubNavigationTab);
-      invContext.clearSelection();
-    }
-  };
+  // Active module state for Tier 1 selection
+  const [activeTier1, setActiveTier1] = useState(isProcurementPage ? 'procurement' : 'inventory');
+  const [toastMessage, setToastMessage] = useState<string | null>(null);
+
+  // Sync active Tier 1 when route changes
+  useEffect(() => {
+    setActiveTier1(isProcurementPage ? 'procurement' : 'inventory');
+  }, [isProcurementPage]);
 
   const handleSettingsClick = () => {
     invContext.setIsSettingsOpen(true);
@@ -55,154 +72,245 @@ export default function Sidebar() {
     invContext.setIsSupportOpen(true);
   };
 
-  // Define Menu Items per Module
-  const inventoryMenu = [
-    { id: 'Tracking',        label: 'Inventory Tracking',             icon: Package },
-    { id: 'Transactions',    label: 'Stock Transactions',             icon: ArrowLeftRight },
-    { id: 'Locations',       label: 'Warehouse Location Tracking',    icon: MapPin },
-    { id: 'Reports & Alerts',label: 'Inventory Reporting & Alerts',  icon: AlertTriangle },
+  const showToast = (msg: string) => {
+    setToastMessage(msg);
+    setTimeout(() => setToastMessage(null), 3000);
+  };
+
+  // Define 10 modules matching the Central Launchpad Bento Grid
+  const tier1Modules: Tier1Module[] = [
+    { id: 'inventory',   title: 'Inventory & Warehouse',      icon: Package,     route: '/',            allowedRoles: ['System Administrator', 'Inventory Officer', 'Procurement Officer'] },
+    { id: 'procurement', title: 'Procurement (Purchasing)',   icon: ShoppingBag, route: '/procurement', allowedRoles: ['System Administrator', 'Inventory Officer', 'Procurement Officer'] },
+    { id: 'supply_chain',title: 'Supply Chain Management',    icon: Truck,       route: '#',            allowedRoles: ['System Administrator'] },
+    { id: 'finance',     title: 'Finance & Accounting',       icon: DollarSign,  route: '#',            allowedRoles: ['System Administrator'] },
+    { id: 'hr',          title: 'Human Resources',            icon: Users,       route: '#',            allowedRoles: ['System Administrator'] },
+    { id: 'sales',       title: 'Sales Order Management',     icon: LineChart,   route: '#',            allowedRoles: ['System Administrator'] },
+    { id: 'helpdesk',    title: 'Helpdesk Support',           icon: LifeBuoy,    route: '#',            allowedRoles: ['System Administrator'] },
+    { id: 'project_mgnt',title: 'Project Management',         icon: Briefcase,   route: '#',            allowedRoles: ['System Administrator'] },
+    { id: 'ecommerce',   title: 'E-Commerce Sync',            icon: Globe,       route: '#',            allowedRoles: ['System Administrator'] },
+    { id: 'bi',          title: 'Business BI Engine',         icon: BarChart3,   route: '#',            allowedRoles: ['System Administrator'] },
   ];
 
-  const procurementMenu = [
-    { id: 'Requisitions',    label: 'Purchase Requisitions',        icon: ClipboardList },
-    { id: 'Suppliers',       label: 'Supplier Management',          icon: Users },
-    { id: 'Purchase Orders', label: 'Purchase Order Management',    icon: ShoppingCart },
-    { id: 'Goods Receipt',   label: 'Goods Receipt & Invoice',      icon: PackageCheck },
-  ];
+  const handleModuleClick = (mod: Tier1Module) => {
+    const isUnlocked = mod.allowedRoles.includes(userRole);
+    if (!isUnlocked) {
+      showToast(`Permission Denied: Active role "${userRole}" lacks access credentials.`);
+      return;
+    }
 
-  const menuItems = isProcurementPage ? procurementMenu : inventoryMenu;
+    setActiveTier1(mod.id);
+
+    if (mod.id === 'inventory') {
+      if (isProcurementPage) {
+        router.push('/');
+      }
+      setCurrentView('inventory');
+    } else if (mod.id === 'procurement') {
+      if (!isProcurementPage) {
+        router.push('/procurement');
+      }
+    } else {
+      showToast(`Launching ${mod.title} sandbox space.`);
+    }
+  };
+
+  // Submenus for Tier 2 depending on Active Module
+  const renderTier2Content = () => {
+    if (activeTier1 === 'inventory') {
+      const inventoryMenu = [
+        { id: 'Tracking',        label: 'Inventory Tracking',             icon: Package },
+        { id: 'Transactions',    label: 'Stock Transactions',             icon: ArrowLeftRight },
+        { id: 'Locations',       label: 'Warehouse Locations',            icon: MapPin },
+        { id: 'Reports & Alerts',label: 'Reporting & Alerts',            icon: AlertTriangle },
+      ];
+
+      return (
+        <div className="flex-1 flex flex-col justify-between py-4">
+          <div className="space-y-4">
+            <div className="px-4">
+              <span className="block text-[8px] font-black text-emerald-300 uppercase tracking-widest leading-none">
+                Module core
+              </span>
+              <span className="block text-xs font-black text-white mt-1 uppercase tracking-wider truncate">
+                Inventory Control
+              </span>
+            </div>
+            
+            <nav className="px-2 space-y-0.5">
+              {inventoryMenu.map(item => {
+                const isActive = !isProcurementPage && invContext.activeTab === item.id;
+                return (
+                  <button
+                    key={item.id}
+                    onClick={() => {
+                      if (isProcurementPage) {
+                        router.push('/');
+                      }
+                      setCurrentView('inventory');
+                      invContext.setActiveTab(item.id as SubNavigationTab);
+                      invContext.clearSelection();
+                    }}
+                    className={`w-full flex items-center gap-2.5 px-3.5 py-2.5 text-xs font-bold rounded-lg transition-all text-left cursor-pointer ${
+                      isActive 
+                        ? 'bg-[#3E7D32] text-white shadow-inner font-extrabold'
+                        : 'text-[#c2e4bb] hover:bg-[#3E7D32]/40 hover:text-white'
+                    }`}
+                  >
+                    <item.icon className="w-4 h-4 shrink-0 opacity-80" />
+                    <span className="truncate">{item.label}</span>
+                  </button>
+                );
+              })}
+            </nav>
+          </div>
+        </div>
+      );
+    }
+
+    if (activeTier1 === 'procurement') {
+      const procurementMenu = [
+        { id: 'Requisitions',    label: 'Purchase Requisitions',        icon: ClipboardList },
+        { id: 'Suppliers',       label: 'Supplier Directory',           icon: Users },
+        { id: 'Purchase Orders', label: 'Order Management',             icon: ShoppingCart },
+        { id: 'Goods Receipt',   label: 'Receipt & Invoice',            icon: PackageCheck },
+      ];
+
+      return (
+        <div className="flex-1 flex flex-col justify-between py-4">
+          <div className="space-y-4">
+            <div className="px-4">
+              <span className="block text-[8px] font-black text-emerald-300 uppercase tracking-widest leading-none">
+                Module core
+              </span>
+              <span className="block text-xs font-black text-white mt-1 uppercase tracking-wider truncate">
+                Procurement Hub
+              </span>
+            </div>
+
+            <nav className="px-2 space-y-0.5">
+              {procurementMenu.map(item => {
+                const isActive = isProcurementPage && procContext.activeTab === item.id;
+                return (
+                  <button
+                    key={item.id}
+                    onClick={() => {
+                      if (!isProcurementPage) {
+                        router.push('/procurement');
+                      }
+                      procContext.setActiveTab(item.id as ProcurementTab);
+                    }}
+                    className={`w-full flex items-center gap-2.5 px-3.5 py-2.5 text-xs font-bold rounded-lg transition-all text-left cursor-pointer ${
+                      isActive
+                        ? 'bg-[#3E7D32] text-white shadow-inner font-extrabold'
+                        : 'text-[#c2e4bb] hover:bg-[#3E7D32]/40 hover:text-white'
+                    }`}
+                  >
+                    <item.icon className="w-4 h-4 shrink-0 opacity-80" />
+                    <span className="truncate">{item.label}</span>
+                  </button>
+                );
+              })}
+            </nav>
+          </div>
+        </div>
+      );
+    }
+
+    // Default Sandboxed Modules View in Tier 2
+    const sandboxMenu = [
+      { id: 'db_node',   label: 'Database Node',    icon: Database },
+      { id: 'security',  label: 'Security Logs',    icon: ShieldCheck },
+      { id: 'telemetry', label: 'EOD Auto-Reports', icon: Activity },
+    ];
+
+    const modName = tier1Modules.find(m => m.id === activeTier1)?.title || 'Virtual Workspace';
+
+    return (
+      <div className="flex-1 flex flex-col justify-between py-4">
+        <div className="space-y-4">
+          <div className="px-4">
+            <span className="block text-[8px] font-black text-amber-300 uppercase tracking-widest leading-none">
+              Sandbox Space
+            </span>
+            <span className="block text-xs font-black text-white mt-1 uppercase tracking-wider truncate">
+              {modName}
+            </span>
+          </div>
+
+          <nav className="px-2 space-y-0.5">
+            {sandboxMenu.map(item => (
+              <button
+                key={item.id}
+                onClick={() => showToast(`Accessing virtual directory... sandbox container simulation active.`)}
+                className="w-full flex items-center gap-2.5 px-3.5 py-2.5 text-xs font-bold rounded-lg text-[#c2e4bb] hover:bg-[#3E7D32]/40 hover:text-white transition-all text-left cursor-pointer"
+              >
+                <item.icon className="w-4 h-4 shrink-0 opacity-80" />
+                <span className="truncate">{item.label}</span>
+              </button>
+            ))}
+          </nav>
+        </div>
+      </div>
+    );
+  };
 
   return (
-    <aside
-      className={`relative bg-[#2D6A24] text-white flex flex-col justify-between flex-shrink-0 select-none shadow-lg transition-[width] duration-300 ease-in-out z-20 ${
-        isSidebarCollapsed ? 'w-[72px]' : 'w-64'
-      }`}
-    >
-      {/* ── Collapse toggle pill – sits on the right edge of the sidebar ── */}
-      <button
-        onClick={() => setIsSidebarCollapsed(!isSidebarCollapsed)}
-        title={isSidebarCollapsed ? 'Expand sidebar' : 'Collapse sidebar'}
-        className="absolute -right-3 top-1/2 -translate-y-1/2 z-30
-                   w-6 h-6 rounded-full
-                   bg-[#3E7D32] hover:bg-[#23531B]
-                   border border-emerald-300/40
-                   flex items-center justify-center
-                   text-white shadow-md
-                   hover:scale-110 transition-all cursor-pointer"
-      >
-        {isSidebarCollapsed
-          ? <ChevronRight className="w-3.5 h-3.5" />
-          : <ChevronLeft  className="w-3.5 h-3.5" />}
-      </button>
-
-      {/* ── Top block: logo + switcher + nav ── */}
-      <div className="flex flex-col min-h-0">
-
-        {/* Branding header */}
-        <div className={`flex items-center gap-3 border-[#23531B]/40 py-5 transition-all duration-300 ${
-          isSidebarCollapsed ? 'px-3 justify-center' : 'px-5'
-        }`}>
-          {/* Logo image */}
-          <div className={`flex-shrink-0 bg-white rounded-xl shadow-md flex items-center justify-center overflow-hidden transition-all duration-300 ${
-            isSidebarCollapsed ? 'w-10 h-10' : 'w-12 h-12'
-          }`}>
-            <Image
-              src="/logo.png"
-              alt="AmbatуGrow Logo"
-              width={48}
-              height={48}
-              className="object-contain w-full h-full p-1"
-              priority
-            />
-          </div>
-
-          {/* Brand text – hidden when collapsed */}
-          {!isSidebarCollapsed && (
-            <div className="overflow-hidden">
-              <h1 className="font-extrabold text-[13px] tracking-widest text-white leading-tight">
-                AMBATUGROW
-              </h1>
-              <p className="text-[9px] text-emerald-200/80 font-bold tracking-wider mt-0.5">
-                ERP SYSTEM
-              </p>
-            </div>
-          )}
+    <div className="flex h-full flex-shrink-0 select-none shadow-lg z-20">
+      
+      {/* ── TIER 1: ICON NAVIGATION BAR (FAR LEFT) ── */}
+      <div className="w-[72px] bg-[#1F4A18] flex flex-col justify-between items-center py-4 border-r border-[#153410]/65">
+        
+        {/* Top Logo */}
+        <div className="w-10 h-10 bg-white rounded-xl shadow-md flex items-center justify-center overflow-hidden p-1 select-none">
+          <Image
+            src="/logo.png"
+            alt="AmbatуGrow Logo"
+            width={40}
+            height={40}
+            className="object-contain"
+            priority
+          />
         </div>
 
-        {/* ── Module Switcher ── */}
-        {!isSidebarCollapsed ? (
-          <div className="px-4 py-1.5 bg-[#23531B]/30 flex rounded-xl mx-3.5 gap-1 text-[10px] font-black uppercase tracking-wider border border-[#23531B]/40">
-            <button
-              onClick={() => router.push('/')}
-              className={`flex-1 py-1 rounded-lg transition-colors text-center cursor-pointer ${
-                !isProcurementPage ? 'bg-[#3E7D32] text-white shadow-sm' : 'text-emerald-200/80 hover:text-white'
-              }`}
-            >
-              Inventory
-            </button>
-            <button
-              onClick={() => router.push('/procurement')}
-              className={`flex-1 py-1 rounded-lg transition-colors text-center cursor-pointer ${
-                isProcurementPage ? 'bg-[#3E7D32] text-white shadow-sm' : 'text-emerald-200/80 hover:text-white'
-              }`}
-            >
-              Procurement
-            </button>
-          </div>
-        ) : (
-          <div className="flex flex-col gap-1.5 items-center py-1.5 mx-2 bg-[#23531B]/20 rounded-xl border border-[#23531B]/35">
-            <button
-              onClick={() => router.push('/')}
-              title="Switch to Inventory"
-              className={`p-1.5 rounded-lg transition-colors cursor-pointer ${
-                !isProcurementPage ? 'bg-[#3E7D32] text-white' : 'text-emerald-300 hover:text-white'
-              }`}
-            >
-              <Package className="w-4 h-4" />
-            </button>
-            <button
-              onClick={() => router.push('/procurement')}
-              title="Switch to Procurement"
-              className={`p-1.5 rounded-lg transition-colors cursor-pointer ${
-                isProcurementPage ? 'bg-[#3E7D32] text-white' : 'text-emerald-300 hover:text-white'
-              }`}
-            >
-              <ShoppingCart className="w-4 h-4" />
-            </button>
-          </div>
-        )}
+        {/* Modules Stack */}
+        <div className="flex-1 w-full my-6 flex flex-col items-center gap-2.5 overflow-y-auto scrollbar-none px-1">
+          {tier1Modules.map((mod) => {
+            const isUnlocked = mod.allowedRoles.includes(userRole);
+            const isActive = activeTier1 === mod.id;
+            const ModIcon = mod.icon;
 
-        {/* Navigation menu */}
-        <nav className={`flex-1 py-4 space-y-1 transition-all duration-300 ${
-          isSidebarCollapsed ? 'px-2' : 'px-3'
-        }`}>
-          {menuItems.map(({ id, label, icon: Icon }) => {
-            const isActive = activeTab === id;
             return (
               <button
-                key={id}
-                onClick={() => handleTabChange(id)}
-                title={isSidebarCollapsed ? label : undefined}
-                className={`w-full flex items-center rounded-lg text-xs font-bold transition-all duration-150 ${
-                  isSidebarCollapsed ? 'justify-center p-3' : 'gap-3 px-4 py-3'
-                } ${
-                  isActive
-                    ? 'bg-[#3E7D32] text-white shadow-inner font-extrabold'
-                    : 'text-[#c2e4bb] hover:bg-[#3E7D32]/40 hover:text-white'
+                key={mod.id}
+                onClick={() => handleModuleClick(mod)}
+                title={mod.title}
+                className={`relative w-11 h-11 rounded-xl flex items-center justify-center transition-all cursor-pointer ${
+                  isActive 
+                    ? 'bg-[#3E7D32] text-white shadow-md border border-emerald-300/20' 
+                    : isUnlocked
+                    ? 'text-emerald-300 hover:bg-[#3E7D32]/45 hover:text-white'
+                    : 'text-slate-500 hover:bg-slate-800/30 cursor-not-allowed opacity-35'
                 }`}
               >
-                <Icon className={`w-4 h-4 shrink-0 ${isActive ? 'text-white' : 'text-[#aee2a4]'}`} />
-                {!isSidebarCollapsed && <span className="truncate">{label}</span>}
+                <ModIcon className="w-5 h-5 shrink-0" />
+                
+                {/* Lock icon overlay for unauthorized modules */}
+                {!isUnlocked && (
+                  <span className="absolute bottom-1 right-1 bg-red-800 border border-red-950 p-[1.5px] rounded">
+                    <Lock className="w-1.5 h-1.5 text-white" />
+                  </span>
+                )}
+
+                {/* Active indicator line */}
+                {isActive && (
+                  <span className="absolute left-0 top-3 bottom-3 w-1 bg-white rounded-r-md"></span>
+                )}
               </button>
             );
           })}
-        </nav>
-      </div>
+        </div>
 
-      {/* ── Bottom block: Settings + Support ── */}
-      <div className={`border-t border-[#23531B]/40 py-3 space-y-1 transition-all duration-300 ${
-        isSidebarCollapsed ? 'px-2' : 'px-3'
-      }`}>
+        {/* Exit Button */}
         <button
           onClick={() => {
             if (isProcurementPage) {
@@ -210,38 +318,67 @@ export default function Sidebar() {
             }
             invContext.setCurrentView('launchpad');
           }}
-          title={isSidebarCollapsed ? 'Exit to Launchpad' : undefined}
-          className={`w-full flex items-center rounded-lg text-xs font-bold text-[#c2e4bb] hover:bg-[#3E7D32]/40 hover:text-white transition-all ${
-            isSidebarCollapsed ? 'justify-center p-3' : 'gap-3 px-4 py-2.5'
-          }`}
+          title="Exit to Launchpad Menu"
+          className="w-11 h-11 rounded-xl flex items-center justify-center text-emerald-300 hover:bg-red-800/40 hover:text-red-200 transition-colors cursor-pointer"
         >
-          <Home className="w-4 h-4 text-[#aee2a4] shrink-0" />
-          {!isSidebarCollapsed && <span>Exit to Launchpad</span>}
+          <Home className="w-5 h-5 shrink-0" />
         </button>
 
-        <button
-          onClick={handleSettingsClick}
-          title={isSidebarCollapsed ? 'Settings' : undefined}
-          className={`w-full flex items-center rounded-lg text-xs font-bold text-[#c2e4bb] hover:bg-[#3E7D32]/40 hover:text-white transition-all ${
-            isSidebarCollapsed ? 'justify-center p-3' : 'gap-3 px-4 py-2.5'
-          }`}
-        >
-          <Settings className="w-4 h-4 text-[#aee2a4] shrink-0" />
-          {!isSidebarCollapsed && <span>Settings</span>}
-        </button>
-
-        <button
-          onClick={handleSupportClick}
-          title={isSidebarCollapsed ? 'Support' : undefined}
-          className={`w-full flex items-center rounded-lg text-xs font-bold text-[#c2e4bb] hover:bg-[#3E7D32]/40 hover:text-white transition-all ${
-            isSidebarCollapsed ? 'justify-center p-3' : 'gap-3 px-4 py-2.5'
-          }`}
-        >
-          <HelpCircle className="w-4 h-4 text-[#aee2a4] shrink-0" />
-          {!isSidebarCollapsed && <span>Support</span>}
-        </button>
       </div>
 
-    </aside>
+      {/* ── TIER 2: SUB-NAVIGATION PANEL (COLLAPSIBLE) ── */}
+      <div className={`bg-[#2D6A24] text-white flex flex-col justify-between transition-all duration-300 ease-in-out overflow-hidden relative border-r border-[#23531B]/40 ${
+        isSidebarCollapsed ? 'w-0 border-r-0' : 'w-52'
+      }`}>
+        
+        {/* Collapse toggle pill – centered vertically on the right edge of Tier 2 */}
+        <button
+          onClick={() => setIsSidebarCollapsed(!isSidebarCollapsed)}
+          title={isSidebarCollapsed ? 'Expand sub-navigation' : 'Collapse sub-navigation'}
+          className="absolute -right-3 top-1/2 -translate-y-1/2 z-30
+                     w-6 h-6 rounded-full
+                     bg-[#3E7D32] hover:bg-[#23531B]
+                     border border-emerald-300/40
+                     flex items-center justify-center
+                     text-white shadow-md
+                     hover:scale-110 transition-all cursor-pointer"
+        >
+          {isSidebarCollapsed
+            ? <ChevronRight className="w-3.5 h-3.5" />
+            : <ChevronLeft  className="w-3.5 h-3.5" />}
+        </button>
+
+        {/* Dynamic sub navigation links */}
+        {renderTier2Content()}
+
+        {/* Settings & Support in Tier 2 Footer */}
+        <div className="border-t border-[#23531B]/40 p-3 space-y-1 bg-[#23531B]/20">
+          <button
+            onClick={handleSettingsClick}
+            className="w-full flex items-center gap-2.5 px-3 py-2 text-xs font-bold text-[#c2e4bb] hover:bg-[#3E7D32]/40 hover:text-white transition-all text-left cursor-pointer"
+          >
+            <Settings className="w-4 h-4 text-[#aee2a4] shrink-0" />
+            <span>Settings</span>
+          </button>
+
+          <button
+            onClick={handleSupportClick}
+            className="w-full flex items-center gap-2.5 px-3 py-2 text-xs font-bold text-[#c2e4bb] hover:bg-[#3E7D32]/40 hover:text-white transition-all text-left cursor-pointer"
+          >
+            <HelpCircle className="w-4 h-4 text-[#aee2a4] shrink-0" />
+            <span>Support</span>
+          </button>
+        </div>
+
+        {/* Toast Notification Container inside Sidebar */}
+        {toastMessage && (
+          <div className="absolute bottom-28 left-3 right-3 bg-slate-900 border border-slate-700/80 text-white text-[10px] font-bold p-2.5 rounded-xl shadow-xl z-50 animate-fade-in text-center leading-normal">
+            {toastMessage}
+          </div>
+        )}
+
+      </div>
+
+    </div>
   );
 }
