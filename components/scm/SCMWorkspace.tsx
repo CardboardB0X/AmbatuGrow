@@ -26,7 +26,7 @@ export default function SCMWorkspace() {
     scmLogs 
   } = useSCM();
 
-  const { items: inventoryItems, zones, moduleTab, setModuleTab } = useInventory();
+  const { items: inventoryItems, zones, moduleTab, setModuleTab, transferItems } = useInventory();
   const activeTab = ['demand', 'logistics', 'route', 'distrib'].includes(moduleTab)
     ? (moduleTab as 'demand' | 'logistics' | 'route' | 'distrib')
     : 'demand';
@@ -60,8 +60,14 @@ export default function SCMWorkspace() {
 
   const handleTransfer = (e: React.FormEvent) => {
     e.preventDefault();
-    setTransferSuccess(true);
-    setTimeout(() => setTransferSuccess(false), 3000);
+    if (!transferSku) return;
+    const ok = transferItems(transferSku, transferFrom, transferTo, transferQty);
+    if (ok) {
+      setTransferSuccess(true);
+      setTimeout(() => setTransferSuccess(false), 3000);
+    } else {
+      alert("Transfer failed. Please check if the source location has enough stock.");
+    }
   };
 
   // SCM Subnavigation Configuration

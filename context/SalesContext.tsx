@@ -1,6 +1,7 @@
 'use client';
 
 import React, { createContext, useContext, useState } from 'react';
+import { useInventory } from './InventoryContext';
 import { SalesOrder, CustomerProfile, WarrantyClaim } from '../types/sales';
 
 interface SalesContextType {
@@ -19,6 +20,7 @@ interface SalesContextType {
 const SalesContext = createContext<SalesContextType | undefined>(undefined);
 
 export function SalesProvider({ children }: { children: React.ReactNode }) {
+  const { items, editItem } = useInventory();
   const salesTarget = 150000; // PHP target
 
   const [customers, setCustomers] = useState<CustomerProfile[]>([
@@ -58,6 +60,17 @@ export function SalesProvider({ children }: { children: React.ReactNode }) {
     };
 
     setSalesOrders(prev => [newOrder, ...prev]);
+
+    // Decrement inventory items when order is placed
+    order.items.forEach(orderItem => {
+      const invItem = items.find(i => i.sku === orderItem.sku);
+      if (invItem) {
+        editItem({
+          ...invItem,
+          stockQty: Math.max(0, invItem.stockQty - orderItem.qty)
+        });
+      }
+    });
 
     // Update customer spend metrics
     setCustomers(prev =>

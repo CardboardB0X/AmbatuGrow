@@ -2,6 +2,7 @@
 'use client';
 
 import React, { createContext, useContext, useState, useEffect } from 'react';
+import { useInventory } from './InventoryContext';
 import {
   Supplier, PurchaseRequisition, PurchaseOrder, GoodsReceiptNote,
   SupplierInvoice, ProcurementLog, ProcurementTab, ProcurementRole,
@@ -304,6 +305,7 @@ const ProcurementContext = createContext<ProcurementContextValue | null>(null);
 // ─── Provider ─────────────────────────────────────────────────────────────────
 
 export const ProcurementProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  const { items, editItem } = useInventory();
   const [activeRole, setActiveRole] = useState<ProcurementRole>('Procurement Manager');
   const [activeTab, setActiveTab] = useState<ProcurementTab>('Requisitions');
   const [suppliers, setSuppliers] = useState<Supplier[]>(mockSuppliers);
@@ -511,6 +513,18 @@ export const ProcurementProvider: React.FC<{ children: React.ReactNode }> = ({ c
       const newStatus: PurchaseOrder['status'] = allReceived ? 'Fully Received' : anyReceived ? 'Partially Received' : po.status;
       return { ...po, items: updatedItems, status: newStatus, linkedGrnIds: [...po.linkedGrnIds, newGRN.id] };
     });
+
+    // Increment inventory items when goods are received
+    grn.items.forEach(grnItem => {
+      const invItem = items.find(i => i.sku === grnItem.sku);
+      if (invItem) {
+        editItem({
+          ...invItem,
+          stockQty: invItem.stockQty + grnItem.acceptedQty
+        });
+      }
+    });
+
     const updatedGRNs = [newGRN, ...grns];
     setGrns(updatedGRNs); setPos(updatedPOs);
     persist({ grns: updatedGRNs, pos: updatedPOs });
