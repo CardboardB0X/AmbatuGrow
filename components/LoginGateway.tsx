@@ -11,6 +11,7 @@ export default function LoginGateway() {
   const [password, setPassword] = useState('');
   
   const [loading, setLoading] = useState(false);
+  const [exiting, setExiting] = useState(false);
   const [timeStr, setTimeStr] = useState('');
   const [dateStr, setDateStr] = useState('');
 
@@ -37,18 +38,21 @@ export default function LoginGateway() {
     if (!email || !password) return;
 
     setLoading(true);
-    // Simulate loading for 1.5s then authenticate
+    // Simulate loading for 1.5s then trigger smooth exit transition
     setTimeout(() => {
       setLoading(false);
-      setIsAuthenticated(true);
+      setExiting(true);
+      setTimeout(() => {
+        setIsAuthenticated(true);
+      }, 500); // Wait for scale-out animation to complete
     }, 1500);
   };
 
   return (
-    <div className="flex h-screen w-screen bg-slate-100 overflow-hidden font-sans select-none">
+    <div className={`flex h-screen w-screen bg-slate-100 overflow-hidden font-sans select-none ${exiting ? 'animate-scale-out' : ''}`}>
       
       {/* ── LEFT-SIDE BRAND PANEL (50% on md+) ── */}
-      <section className="hidden md:flex md:w-1/2 bg-[#2D6A24] relative flex-col justify-between p-12 text-white">
+      <section className="hidden md:flex md:w-1/2 bg-[#2D6A24] relative flex-col justify-between p-12 text-white animate-slide-in-left">
         
         {/* Top Branding decoration */}
         <div className="flex items-center gap-2">
@@ -101,7 +105,7 @@ export default function LoginGateway() {
       </section>
 
       {/* ── RIGHT-SIDE CREDENTIALS PORTAL (100% on mobile, 50% on md+) ── */}
-      <section className="w-full md:w-1/2 bg-white flex items-center justify-center p-8 relative">
+      <section className="w-full md:w-1/2 bg-white flex items-center justify-center p-8 relative animate-slide-in-right">
         
         {/* Loading Overlay */}
         {loading && (

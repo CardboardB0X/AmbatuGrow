@@ -125,28 +125,25 @@ export default function Sidebar() {
 
     setActiveTier1(mod.id);
 
-    if (mod.id === 'procurement') {
-      if (!isProcurementPage) {
-        router.push('/procurement');
-      }
-    } else {
-      if (isProcurementPage) {
-        router.push('/');
-      }
-      setCurrentView(mod.id as 'launchpad' | 'inventory' | 'ecommerce' | 'supply_chain' | 'sales' | 'helpdesk');
-      
-      // Initialize default sub-navigation tab for each module
-      if (mod.id === 'supply_chain') {
-        setModuleTab('demand');
-      } else if (mod.id === 'sales') {
-        setModuleTab('quotes');
-      } else if (mod.id === 'helpdesk') {
-        setModuleTab('tickets');
-      } else if (mod.id === 'ecommerce') {
-        setModuleTab('orders');
-      } else if (mod.id === 'inventory') {
-        setModuleTab('default');
-      }
+    if (isProcurementPage && mod.id !== 'procurement') {
+      router.push('/');
+    }
+
+    setCurrentView(mod.id as 'launchpad' | 'inventory' | 'ecommerce' | 'supply_chain' | 'sales' | 'helpdesk' | 'procurement');
+    
+    // Initialize default sub-navigation tab for each module
+    if (mod.id === 'supply_chain') {
+      setModuleTab('demand');
+    } else if (mod.id === 'sales') {
+      setModuleTab('quotes');
+    } else if (mod.id === 'helpdesk') {
+      setModuleTab('tickets');
+    } else if (mod.id === 'ecommerce') {
+      setModuleTab('orders');
+    } else if (mod.id === 'inventory') {
+      setModuleTab('default');
+    } else if (mod.id === 'procurement') {
+      procContext.setActiveTab('Requisitions');
     }
   };
 
@@ -225,15 +222,17 @@ export default function Sidebar() {
 
             <nav className="px-2 space-y-0.5">
               {procurementMenu.map(item => {
-                const isActive = isProcurementPage && procContext.activeTab === item.id;
+                const isActive = (isProcurementPage || currentView === 'procurement') && procContext.activeTab === item.id;
                 return (
                   <button
                     key={item.id}
                     onClick={() => {
-                      if (!isProcurementPage) {
-                        router.push('/procurement');
+                      if (isProcurementPage) {
+                        procContext.setActiveTab(item.id as ProcurementTab);
+                      } else {
+                        setCurrentView('procurement');
+                        procContext.setActiveTab(item.id as ProcurementTab);
                       }
-                      procContext.setActiveTab(item.id as ProcurementTab);
                     }}
                     className={`w-full flex items-center gap-2.5 px-3.5 py-2.5 text-xs font-bold rounded-lg transition-all text-left cursor-pointer ${
                       isActive

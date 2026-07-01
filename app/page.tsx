@@ -2,6 +2,7 @@
 
 import React from 'react';
 import { useInventory } from '../context/InventoryContext';
+import { useProcurement } from '../context/ProcurementContext';
 import Sidebar from '../components/Sidebar';
 import Header from '../components/Header';
 import SubNavigation from '../components/SubNavigation';
@@ -22,8 +23,25 @@ import SCMWorkspace from '../components/scm/SCMWorkspace';
 import SalesWorkspace from '../components/sales/SalesWorkspace';
 import HelpdeskWorkspace from '../components/helpdesk/HelpdeskWorkspace';
 
+// Procurement Workspaces & Layout Widgets
+import ProcurementSubNavigation from '../components/procurement/ProcurementSubNavigation';
+import PRWorkspace from '../components/procurement/PRWorkspace';
+import SuppliersWorkspace from '../components/procurement/SuppliersWorkspace';
+import POWorkspace from '../components/procurement/POWorkspace';
+import GRNWorkspace from '../components/procurement/GRNWorkspace';
+import ProcurementWidgetStack from '../components/procurement/ProcurementWidgetStack';
+
+// Procurement Drawers & Modals
+import PRDrawer from '../components/procurement/PRDrawer';
+import PODrawer from '../components/procurement/PODrawer';
+import SupplierDrawer from '../components/procurement/SupplierDrawer';
+import ApprovalModal from '../components/procurement/ApprovalModal';
+import GRNModal from '../components/procurement/GRNModal';
+import InvoiceModal from '../components/procurement/InvoiceModal';
+
 export default function Home() {
   const { activeTab, isAuthenticated, currentView } = useInventory();
+  const { activeTab: procActiveTab } = useProcurement();
 
   // Route protection - Force Login Gateway if unauthenticated
   if (!isAuthenticated) {
@@ -46,6 +64,22 @@ export default function Home() {
     }
   };
 
+  // Dynamically swap the central workspace view when inside Procurement dashboard
+  const renderProcurementWorkspace = () => {
+    switch (procActiveTab) {
+      case 'Requisitions':
+        return <PRWorkspace />;
+      case 'Suppliers':
+        return <SuppliersWorkspace />;
+      case 'Purchase Orders':
+        return <POWorkspace />;
+      case 'Goods Receipt':
+        return <GRNWorkspace />;
+      default:
+        return <PRWorkspace />;
+    }
+  };
+
   return (
     <div className="flex h-screen w-screen overflow-hidden bg-slate-100 font-sans text-slate-900 antialiased animate-fade-in">
       {/* Column 1: Left Navigation Sidebar */}
@@ -59,6 +93,7 @@ export default function Home() {
 
         {/* Sub-Navigation Tabs Row */}
         {currentView === 'inventory' && <SubNavigation />}
+        {currentView === 'procurement' && <ProcurementSubNavigation />}
 
         {/* Bottom Section: Workspace + Right Widgets */}
         <div className="flex-1 flex min-h-0 overflow-hidden">
@@ -75,6 +110,8 @@ export default function Home() {
               <SalesWorkspace />
             ) : currentView === 'helpdesk' ? (
               <HelpdeskWorkspace />
+            ) : currentView === 'procurement' ? (
+              renderProcurementWorkspace()
             ) : (
               renderWorkspace()
             )}
@@ -82,6 +119,7 @@ export default function Home() {
 
           {/* Column 3: Right-Side Contextual Widget Stack */}
           {currentView === 'inventory' && <WidgetStack />}
+          {currentView === 'procurement' && <ProcurementWidgetStack />}
 
         </div>
 
@@ -92,6 +130,14 @@ export default function Home() {
       <TransferWizard />
       <SettingsModal />
       <SupportModal />
+
+      {/* Procurement Floating Drawers & Modals */}
+      <PRDrawer />
+      <PODrawer />
+      <SupplierDrawer />
+      <ApprovalModal />
+      <GRNModal />
+      <InvoiceModal />
 
     </div>
   );

@@ -71,8 +71,8 @@ interface InventoryContextType {
   setIsAuthenticated: (auth: boolean) => void;
   userRole: 'System Administrator' | 'Inventory Officer' | 'Procurement Officer';
   setUserRole: (role: 'System Administrator' | 'Inventory Officer' | 'Procurement Officer') => void;
-  currentView: 'launchpad' | 'inventory' | 'ecommerce' | 'supply_chain' | 'sales' | 'helpdesk';
-  setCurrentView: (view: 'launchpad' | 'inventory' | 'ecommerce' | 'supply_chain' | 'sales' | 'helpdesk') => void;
+  currentView: 'launchpad' | 'inventory' | 'ecommerce' | 'supply_chain' | 'sales' | 'helpdesk' | 'procurement';
+  setCurrentView: (view: 'launchpad' | 'inventory' | 'ecommerce' | 'supply_chain' | 'sales' | 'helpdesk' | 'procurement') => void;
   moduleTab: string;
   setModuleTab: (tab: string) => void;
 }
@@ -259,7 +259,7 @@ export const InventoryProvider: React.FC<{ children: React.ReactNode }> = ({ chi
   // Authentication & View states
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [userRole, setUserRole] = useState<'System Administrator' | 'Inventory Officer' | 'Procurement Officer'>('System Administrator');
-  const [currentView, setCurrentView] = useState<'launchpad' | 'inventory' | 'ecommerce' | 'supply_chain' | 'sales' | 'helpdesk'>('launchpad');
+  const [currentView, setCurrentView] = useState<'launchpad' | 'inventory' | 'ecommerce' | 'supply_chain' | 'sales' | 'helpdesk' | 'procurement'>('launchpad');
   const [moduleTab, setModuleTab] = useState<string>('default');
 
   const updateAuth = (auth: boolean) => {
@@ -276,7 +276,7 @@ export const InventoryProvider: React.FC<{ children: React.ReactNode }> = ({ chi
     localStorage.setItem('erp_role', role);
   };
 
-  const updateView = (view: 'launchpad' | 'inventory' | 'ecommerce' | 'supply_chain' | 'sales' | 'helpdesk') => {
+  const updateView = (view: 'launchpad' | 'inventory' | 'ecommerce' | 'supply_chain' | 'sales' | 'helpdesk' | 'procurement') => {
     setCurrentView(view);
     localStorage.setItem('erp_view', view);
   };
