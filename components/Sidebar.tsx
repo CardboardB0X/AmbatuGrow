@@ -279,6 +279,10 @@ export default function Sidebar() {
                   <button
                     key={item.id}
                     onClick={() => {
+                      if (isProcurementPage) {
+                        router.push('/');
+                      }
+                      setCurrentView('supply_chain');
                       setModuleTab(item.id);
                     }}
                     className={`w-full flex items-center gap-2.5 px-3.5 py-2.5 text-xs font-bold rounded-lg transition-all text-left cursor-pointer ${
@@ -325,6 +329,10 @@ export default function Sidebar() {
                   <button
                     key={item.id}
                     onClick={() => {
+                      if (isProcurementPage) {
+                        router.push('/');
+                      }
+                      setCurrentView('sales');
                       setModuleTab(item.id);
                     }}
                     className={`w-full flex items-center gap-2.5 px-3.5 py-2.5 text-xs font-bold rounded-lg transition-all text-left cursor-pointer ${
@@ -371,6 +379,10 @@ export default function Sidebar() {
                   <button
                     key={item.id}
                     onClick={() => {
+                      if (isProcurementPage) {
+                        router.push('/');
+                      }
+                      setCurrentView('helpdesk');
                       setModuleTab(item.id);
                     }}
                     className={`w-full flex items-center gap-2.5 px-3.5 py-2.5 text-xs font-bold rounded-lg transition-all text-left cursor-pointer ${
