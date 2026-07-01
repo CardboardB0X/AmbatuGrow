@@ -26,7 +26,7 @@ export default function SCMWorkspace() {
     scmLogs 
   } = useSCM();
 
-  const { items: inventoryItems, zones, moduleTab, setModuleTab, transferItems } = useInventory();
+  const { items: inventoryItems, zones, moduleTab, setModuleTab, transferItems, showToast } = useInventory();
   const activeTab = ['demand', 'logistics', 'route', 'distrib'].includes(moduleTab)
     ? (moduleTab as 'demand' | 'logistics' | 'route' | 'distrib')
     : 'demand';
@@ -50,16 +50,16 @@ export default function SCMWorkspace() {
   const handleScheduleShipment = (e: React.FormEvent) => {
     e.preventDefault();
     if (!dispatchSku) {
-      alert("Please select a product SKU to dispatch.");
+      showToast("Please select a product SKU to dispatch.", 'error');
       return;
     }
     const invItem = inventoryItems.find(i => i.sku === dispatchSku);
     if (!invItem) {
-      alert("Selected product SKU not found in inventory.");
+      showToast("Selected product SKU not found in inventory.", 'error');
       return;
     }
     if (invItem.stockQty < newQty) {
-      alert(`Insufficient stock! ${invItem.name} has only ${invItem.stockQty} units available at the origin Hub.`);
+      showToast(`Insufficient stock! ${invItem.name} has only ${invItem.stockQty} units available at the origin Hub.`, 'error');
       return;
     }
 
@@ -90,8 +90,9 @@ export default function SCMWorkspace() {
     if (ok) {
       setTransferSuccess(true);
       setTimeout(() => setTransferSuccess(false), 3000);
+      showToast(`Authorized stock transfer request initiated for ${transferQty} units!`, 'success');
     } else {
-      alert("Transfer failed. Please check if the source location has enough stock.");
+      showToast("Transfer failed. Please check if the source location has enough stock.", 'error');
     }
   };
 

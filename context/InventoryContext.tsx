@@ -75,6 +75,8 @@ interface InventoryContextType {
   setCurrentView: (view: 'launchpad' | 'inventory' | 'ecommerce' | 'supply_chain' | 'sales' | 'helpdesk' | 'procurement') => void;
   moduleTab: string;
   setModuleTab: (tab: string) => void;
+  toast: { message: string; type: 'success' | 'error' | 'warning' | 'info' } | null;
+  showToast: (message: string, type?: 'success' | 'error' | 'warning' | 'info') => void;
 }
 
 const InventoryContext = createContext<InventoryContextType | undefined>(undefined);
@@ -261,6 +263,12 @@ export const InventoryProvider: React.FC<{ children: React.ReactNode }> = ({ chi
   const [userRole, setUserRole] = useState<'System Administrator' | 'Inventory Officer' | 'Procurement Officer'>('System Administrator');
   const [currentView, setCurrentView] = useState<'launchpad' | 'inventory' | 'ecommerce' | 'supply_chain' | 'sales' | 'helpdesk' | 'procurement'>('launchpad');
   const [moduleTab, setModuleTab] = useState<string>('default');
+  const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' | 'warning' | 'info' } | null>(null);
+
+  const showToast = (message: string, type: 'success' | 'error' | 'warning' | 'info' = 'success') => {
+    setToast({ message, type });
+    setTimeout(() => setToast(null), 3500);
+  };
 
   const updateAuth = (auth: boolean) => {
     setIsAuthenticated(auth);
@@ -683,6 +691,8 @@ export const InventoryProvider: React.FC<{ children: React.ReactNode }> = ({ chi
       setCurrentView: updateView,
       moduleTab,
       setModuleTab,
+      toast,
+      showToast,
     }}>
       {children}
     </InventoryContext.Provider>

@@ -61,12 +61,12 @@ export default function Sidebar() {
     currentView,
     setCurrentView,
     moduleTab,
-    setModuleTab
+    setModuleTab,
+    showToast
   } = invContext;
 
   // Active module state for Tier 1 selection
   const [activeTier1, setActiveTier1] = useState(isProcurementPage ? 'procurement' : 'inventory');
-  const [toastMessage, setToastMessage] = useState<string | null>(null);
   const [showUserMenu, setShowUserMenu] = useState(false);
 
   // Sync active Tier 1 when route changes or active view changes
@@ -99,11 +99,6 @@ export default function Sidebar() {
 
   const handleSignOut = () => {
     setIsAuthenticated(false);
-  };
-
-  const showToast = (msg: string) => {
-    setToastMessage(msg);
-    setTimeout(() => setToastMessage(null), 3000);
   };
 
   // Define 6 modules matching the Central Launchpad Bento Grid
@@ -649,12 +644,7 @@ export default function Sidebar() {
 
         </div>
 
-        {/* Toast Notification Container inside Sidebar */}
-        {toastMessage && (
-          <div className="absolute bottom-28 left-3 right-3 bg-slate-900 border border-slate-700/80 text-white text-[10px] font-bold p-2.5 rounded-xl shadow-xl z-50 animate-fade-in text-center leading-normal">
-            {toastMessage}
-          </div>
-        )}
+
 
       </div>
 

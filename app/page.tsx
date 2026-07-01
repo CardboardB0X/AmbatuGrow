@@ -39,8 +39,11 @@ import ApprovalModal from '../components/procurement/ApprovalModal';
 import GRNModal from '../components/procurement/GRNModal';
 import InvoiceModal from '../components/procurement/InvoiceModal';
 
+// Lucide Icons for Toasts
+import { CheckCircle2, XCircle, AlertTriangle, Info } from 'lucide-react';
+
 export default function Home() {
-  const { activeTab, isAuthenticated, currentView } = useInventory();
+  const { activeTab, isAuthenticated, currentView, toast } = useInventory();
   const { activeTab: procActiveTab } = useProcurement();
 
   // Route protection - Force Login Gateway if unauthenticated
@@ -81,7 +84,7 @@ export default function Home() {
   };
 
   return (
-    <div className="flex h-screen w-screen overflow-hidden bg-slate-100 font-sans text-slate-900 antialiased animate-fade-in">
+    <div className="flex h-screen w-screen overflow-hidden bg-slate-100 font-sans text-slate-900 antialiased animate-fade-in relative">
       {/* Column 1: Left Navigation Sidebar */}
       <Sidebar />
 
@@ -138,6 +141,34 @@ export default function Home() {
       <ApprovalModal />
       <GRNModal />
       <InvoiceModal />
+
+      {/* Global Toast Notification Card */}
+      {toast && (
+        <div className="fixed bottom-6 right-6 bg-slate-950/95 backdrop-blur-md text-white rounded-2xl shadow-2xl p-4 flex items-center gap-3.5 z-55 animate-slide-in-right max-w-sm border border-slate-800/80">
+          <div className={`p-2 rounded-xl shrink-0 border ${
+            toast.type === 'success' ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20' :
+            toast.type === 'error' ? 'bg-rose-500/10 text-rose-400 border-rose-500/20' :
+            toast.type === 'warning' ? 'bg-amber-500/10 text-amber-400 border-amber-500/20' :
+            'bg-slate-500/10 text-slate-400 border-slate-500/20'
+          }`}>
+            {toast.type === 'success' && <CheckCircle2 className="w-5 h-5" />}
+            {toast.type === 'error' && <XCircle className="w-5 h-5" />}
+            {toast.type === 'warning' && <AlertTriangle className="w-5 h-5" />}
+            {toast.type === 'info' && <Info className="w-5 h-5" />}
+          </div>
+          <div className="flex-grow min-w-0 pr-4">
+            <span className="block text-[11px] font-black text-white uppercase tracking-wider">
+              {toast.type === 'success' ? 'Task Succeeded' :
+               toast.type === 'error' ? 'Execution Error' :
+               toast.type === 'warning' ? 'System Warning' :
+               'System Notification'}
+            </span>
+            <span className="block text-[10px] font-bold text-slate-300 mt-0.5 leading-normal">
+              {toast.message}
+            </span>
+          </div>
+        </div>
+      )}
 
     </div>
   );
