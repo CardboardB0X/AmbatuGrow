@@ -71,8 +71,8 @@ interface InventoryContextType {
   setIsAuthenticated: (auth: boolean) => void;
   userRole: 'System Administrator' | 'Inventory Officer' | 'Procurement Officer';
   setUserRole: (role: 'System Administrator' | 'Inventory Officer' | 'Procurement Officer') => void;
-  currentView: 'launchpad' | 'inventory' | 'ecommerce';
-  setCurrentView: (view: 'launchpad' | 'inventory' | 'ecommerce') => void;
+  currentView: 'launchpad' | 'inventory' | 'ecommerce' | 'supply_chain' | 'sales' | 'helpdesk';
+  setCurrentView: (view: 'launchpad' | 'inventory' | 'ecommerce' | 'supply_chain' | 'sales' | 'helpdesk') => void;
 }
 
 const InventoryContext = createContext<InventoryContextType | undefined>(undefined);
@@ -257,7 +257,7 @@ export const InventoryProvider: React.FC<{ children: React.ReactNode }> = ({ chi
   // Authentication & View states
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [userRole, setUserRole] = useState<'System Administrator' | 'Inventory Officer' | 'Procurement Officer'>('System Administrator');
-  const [currentView, setCurrentView] = useState<'launchpad' | 'inventory' | 'ecommerce'>('launchpad');
+  const [currentView, setCurrentView] = useState<'launchpad' | 'inventory' | 'ecommerce' | 'supply_chain' | 'sales' | 'helpdesk'>('launchpad');
 
   const updateAuth = (auth: boolean) => {
     setIsAuthenticated(auth);
@@ -273,7 +273,7 @@ export const InventoryProvider: React.FC<{ children: React.ReactNode }> = ({ chi
     localStorage.setItem('erp_role', role);
   };
 
-  const updateView = (view: 'launchpad' | 'inventory' | 'ecommerce') => {
+  const updateView = (view: 'launchpad' | 'inventory' | 'ecommerce' | 'supply_chain' | 'sales' | 'helpdesk') => {
     setCurrentView(view);
     localStorage.setItem('erp_view', view);
   };

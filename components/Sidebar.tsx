@@ -114,22 +114,15 @@ export default function Sidebar() {
 
     setActiveTier1(mod.id);
 
-    if (mod.id === 'inventory') {
-      if (isProcurementPage) {
-        router.push('/');
-      }
-      setCurrentView('inventory');
-    } else if (mod.id === 'procurement') {
+    if (mod.id === 'procurement') {
       if (!isProcurementPage) {
         router.push('/procurement');
       }
-    } else if (mod.id === 'ecommerce') {
+    } else {
       if (isProcurementPage) {
         router.push('/');
       }
-      setCurrentView('ecommerce');
-    } else {
-      showToast(`Launching ${mod.title} sandbox space.`);
+      setCurrentView(mod.id as 'launchpad' | 'inventory' | 'ecommerce' | 'supply_chain' | 'sales' | 'helpdesk');
     }
   };
 
