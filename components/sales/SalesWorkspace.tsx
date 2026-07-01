@@ -23,8 +23,10 @@ export default function SalesWorkspace() {
     totalRevenue
   } = useSales();
 
-  const { items: inventoryItems } = useInventory();
-  const [activeTab, setActiveTab] = useState<'orders' | 'crm' | 'aftersales' | 'performance'>('orders');
+  const { items: inventoryItems, moduleTab, setModuleTab } = useInventory();
+  const activeTab = ['quotes', 'crm', 'aftersales', 'analytics'].includes(moduleTab)
+    ? (moduleTab as 'quotes' | 'crm' | 'aftersales' | 'analytics')
+    : 'quotes';
 
   // Sales Order Form States
   const [custName, setCustName] = useState('Juan Dela Cruz');
@@ -109,10 +111,10 @@ export default function SalesWorkspace() {
 
   // Sales Subnavigation tabs
   const tabs = [
-    { id: 'orders' as const, label: 'Order Management', icon: ClipboardList },
+    { id: 'quotes' as const, label: 'Order Management', icon: ClipboardList },
     { id: 'crm' as const, label: 'CRM & Segments', icon: Users },
     { id: 'aftersales' as const, label: 'Warranty & Claims', icon: PackageCheck },
-    { id: 'performance' as const, label: 'Sales Performance', icon: Activity },
+    { id: 'analytics' as const, label: 'Sales Performance', icon: Activity },
   ];
 
   return (
@@ -137,7 +139,7 @@ export default function SalesWorkspace() {
           return (
             <button
               key={tab.id}
-              onClick={() => setActiveTab(tab.id)}
+              onClick={() => setModuleTab(tab.id)}
               className={`flex-1 flex items-center justify-center gap-2 px-5 py-2.5 rounded-lg text-xs font-extrabold uppercase tracking-wider transition-all duration-200 cursor-pointer ${
                 isActive
                   ? 'bg-white text-emerald-700 shadow-sm border border-emerald-500/10'
@@ -155,7 +157,7 @@ export default function SalesWorkspace() {
       <div className="flex-grow flex flex-col min-h-[400px]">
         
         {/* ── TAB 1: ORDER MANAGEMENT ── */}
-        {activeTab === 'orders' && (
+        {activeTab === 'quotes' && (
           <div className="flex-grow grid grid-cols-1 lg:grid-cols-3 gap-6 animate-slide-up-fade">
             {/* Orders Table */}
             <div className="lg:col-span-2 bg-white border border-slate-200/80 rounded-2xl p-5 shadow-xs flex flex-col justify-between">
@@ -462,7 +464,7 @@ export default function SalesWorkspace() {
         )}
 
         {/* ── TAB 4: SALES PERFORMANCE ── */}
-        {activeTab === 'performance' && (
+        {activeTab === 'analytics' && (
           <div className="flex-grow flex flex-col gap-6 animate-slide-up-fade">
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
               

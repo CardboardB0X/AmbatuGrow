@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { useHelpdesk } from '../../context/HelpdeskContext';
+import { useInventory } from '../../context/InventoryContext';
 import { 
   LifeBuoy, 
   Globe, 
@@ -24,7 +25,10 @@ export default function HelpdeskWorkspace() {
     slaRules 
   } = useHelpdesk();
 
-  const [activeTab, setActiveTab] = useState<'tickets' | 'portal' | 'comms' | 'sla'>('tickets');
+  const { moduleTab, setModuleTab } = useInventory();
+  const activeTab = ['tickets', 'portal', 'comms', 'sla'].includes(moduleTab)
+    ? (moduleTab as 'tickets' | 'portal' | 'comms' | 'sla')
+    : 'tickets';
   const [currentTime, setCurrentTime] = useState(new Date());
 
   // Form States
@@ -111,7 +115,7 @@ export default function HelpdeskWorkspace() {
           return (
             <button
               key={tab.id}
-              onClick={() => setActiveTab(tab.id)}
+              onClick={() => setModuleTab(tab.id)}
               className={`flex-1 flex items-center justify-center gap-2 px-5 py-2.5 rounded-lg text-xs font-extrabold uppercase tracking-wider transition-all duration-200 cursor-pointer ${
                 isActive
                   ? 'bg-white text-emerald-700 shadow-sm border border-emerald-500/10'
