@@ -18,6 +18,7 @@ import SupportModal from '../components/SupportModal';
 // Modals, Launchpad & Login
 import LoginGateway from '../components/LoginGateway';
 import CentralLaunchpad from '../components/CentralLaunchpad';
+import ECommerceWorkspace from '../components/ecommerce/ECommerceWorkspace';
 
 export default function Home() {
   const { activeTab, isAuthenticated, currentView } = useInventory();
@@ -55,18 +56,24 @@ export default function Home() {
         <Header />
 
         {/* Sub-Navigation Tabs Row */}
-        {currentView !== 'launchpad' && <SubNavigation />}
+        {currentView !== 'launchpad' && currentView !== 'ecommerce' && <SubNavigation />}
 
         {/* Bottom Section: Workspace + Right Widgets */}
         <div className="flex-1 flex min-h-0 overflow-hidden">
           
           {/* Column 2: Central Core Workspace (Dynamic views) */}
           <main className="flex-1 flex flex-col min-h-0 overflow-hidden">
-            {currentView === 'launchpad' ? <CentralLaunchpad /> : renderWorkspace()}
+            {currentView === 'launchpad' ? (
+              <CentralLaunchpad />
+            ) : currentView === 'ecommerce' ? (
+              <ECommerceWorkspace />
+            ) : (
+              renderWorkspace()
+            )}
           </main>
 
           {/* Column 3: Right-Side Contextual Widget Stack */}
-          {currentView !== 'launchpad' && <WidgetStack />}
+          {currentView !== 'launchpad' && currentView !== 'ecommerce' && <WidgetStack />}
 
         </div>
 

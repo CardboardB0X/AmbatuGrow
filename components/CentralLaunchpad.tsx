@@ -363,15 +363,25 @@ export default function CentralLaunchpad() {
             </div>
           </div>
 
-          {/* Sync Trigger Action Button */}
-          <button
-            onClick={handleManualSync}
-            disabled={syncing}
-            className="w-full py-2.5 bg-[#2D6A24] hover:bg-[#23531B] disabled:bg-emerald-800/40 text-white rounded-xl text-xs font-extrabold uppercase tracking-wider shadow-sm transition-all cursor-pointer flex items-center justify-center gap-2"
-          >
-            <RefreshCw className={`w-3.5 h-3.5 ${syncing ? 'animate-spin' : ''}`} />
-            <span>{syncing ? 'Syncing Channels...' : 'Sync Channels Now'}</span>
-          </button>
+          {/* Action Buttons */}
+          <div className="space-y-2">
+            <button
+              onClick={handleManualSync}
+              disabled={syncing}
+              className="w-full py-2.5 bg-[#2D6A24] hover:bg-[#23531B] disabled:bg-emerald-800/40 text-white rounded-xl text-xs font-extrabold uppercase tracking-wider shadow-sm transition-all cursor-pointer flex items-center justify-center gap-2"
+            >
+              <RefreshCw className={`w-3.5 h-3.5 ${syncing ? 'animate-spin' : ''}`} />
+              <span>{syncing ? 'Syncing Channels...' : 'Sync Channels Now'}</span>
+            </button>
+
+            <button
+              onClick={() => setCurrentView('ecommerce')}
+              className="w-full py-2.5 border border-emerald-200 hover:bg-emerald-50 text-[#2D6A24] rounded-xl text-xs font-extrabold uppercase tracking-wider shadow-sm transition-all cursor-pointer flex items-center justify-center gap-1.5"
+            >
+              <Globe className="w-3.5 h-3.5" />
+              <span>Open E-Commerce Hub</span>
+            </button>
+          </div>
 
           <div className="text-[9px] text-slate-400 font-bold text-center">
             Last Synced: {lastSyncTime}

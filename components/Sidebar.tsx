@@ -30,7 +30,9 @@ import {
   Activity,
   LogOut,
   Globe,
-  MessageSquare
+  MessageSquare,
+  FileText,
+  CreditCard
 } from 'lucide-react';
 
 interface Tier1Module {
@@ -93,13 +95,14 @@ export default function Sidebar() {
     setTimeout(() => setToastMessage(null), 3000);
   };
 
-  // Define 5 modules matching the Central Launchpad Bento Grid
+  // Define 6 modules matching the Central Launchpad Bento Grid
   const tier1Modules: Tier1Module[] = [
     { id: 'inventory',   title: 'Inventory & Warehouse',      icon: Package,     route: '/',            allowedRoles: ['System Administrator', 'Inventory Officer', 'Procurement Officer'] },
     { id: 'procurement', title: 'Procurement (Purchasing)',   icon: ShoppingBag, route: '/procurement', allowedRoles: ['System Administrator', 'Inventory Officer', 'Procurement Officer'] },
     { id: 'supply_chain',title: 'Supply Chain Management',    icon: Truck,       route: '#',            allowedRoles: ['System Administrator', 'Inventory Officer'] },
     { id: 'sales',       title: 'Sales Order Management',     icon: LineChart,   route: '#',            allowedRoles: ['System Administrator'] },
     { id: 'helpdesk',    title: 'Helpdesk Support',           icon: LifeBuoy,    route: '#',            allowedRoles: ['System Administrator'] },
+    { id: 'ecommerce',   title: 'E-Commerce Integration',     icon: Globe,       route: '#',            allowedRoles: ['System Administrator'] },
   ];
 
   const handleModuleClick = (mod: Tier1Module) => {
@@ -120,6 +123,11 @@ export default function Sidebar() {
       if (!isProcurementPage) {
         router.push('/procurement');
       }
+    } else if (mod.id === 'ecommerce') {
+      if (isProcurementPage) {
+        router.push('/');
+      }
+      setCurrentView('ecommerce');
     } else {
       showToast(`Launching ${mod.title} sandbox space.`);
     }
@@ -326,6 +334,48 @@ export default function Sidebar() {
                 <button
                   key={item.id}
                   onClick={() => showToast(`Accessing ${item.label} workspace... Sandbox simulation active.`)}
+                  className="w-full flex items-center gap-2.5 px-3.5 py-2.5 text-xs font-bold rounded-lg text-[#c2e4bb] hover:bg-[#3E7D32]/40 hover:text-white transition-all text-left cursor-pointer"
+                >
+                  <item.icon className="w-4 h-4 shrink-0 opacity-80" />
+                  <span className="truncate">{item.label}</span>
+                </button>
+              ))}
+            </nav>
+          </div>
+        </div>
+      );
+    }
+
+    if (activeTier1 === 'ecommerce') {
+      const ecomMenu = [
+        { id: 'orders',   label: 'Order Sync Logs',      icon: ClipboardList },
+        { id: 'stock',    label: 'Stock Availability',   icon: PackageCheck },
+        { id: 'pim',      label: 'PIM Product Catalog',  icon: FileText },
+        { id: 'payments', label: 'Payments Gateway',     icon: CreditCard },
+      ];
+
+      return (
+        <div className="flex-1 flex flex-col justify-between py-4">
+          <div className="space-y-4">
+            <div className="px-4">
+              <span className="block text-[8px] font-black text-emerald-300 uppercase tracking-widest leading-none">
+                Module core
+              </span>
+              <span className="block text-xs font-black text-white mt-1 uppercase tracking-wider truncate">
+                E-Commerce Sync
+              </span>
+            </div>
+
+            <nav className="px-2 space-y-0.5">
+              {ecomMenu.map(item => (
+                <button
+                  key={item.id}
+                  onClick={() => {
+                    if (isProcurementPage) {
+                      router.push('/');
+                    }
+                    setCurrentView('ecommerce');
+                  }}
                   className="w-full flex items-center gap-2.5 px-3.5 py-2.5 text-xs font-bold rounded-lg text-[#c2e4bb] hover:bg-[#3E7D32]/40 hover:text-white transition-all text-left cursor-pointer"
                 >
                   <item.icon className="w-4 h-4 shrink-0 opacity-80" />
