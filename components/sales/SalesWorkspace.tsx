@@ -24,8 +24,8 @@ export default function SalesWorkspace() {
   } = useSales();
 
   const { items: inventoryItems, moduleTab, setModuleTab } = useInventory();
-  const activeTab = ['quotes', 'crm', 'aftersales', 'analytics'].includes(moduleTab)
-    ? (moduleTab as 'quotes' | 'crm' | 'aftersales' | 'analytics')
+  const activeTab = ['quotes', 'crm', 'fulfill', 'analytics'].includes(moduleTab)
+    ? (moduleTab as 'quotes' | 'crm' | 'fulfill' | 'analytics')
     : 'quotes';
 
   // Sales Order Form States
@@ -111,10 +111,10 @@ export default function SalesWorkspace() {
 
   // Sales Subnavigation tabs
   const tabs = [
-    { id: 'quotes' as const, label: 'Order Management', icon: ClipboardList },
-    { id: 'crm' as const, label: 'CRM & Segments', icon: Users },
-    { id: 'aftersales' as const, label: 'Warranty & Claims', icon: PackageCheck },
-    { id: 'analytics' as const, label: 'Sales Performance', icon: Activity },
+    { id: 'quotes' as const, label: 'Customer Quotes', icon: ClipboardList },
+    { id: 'fulfill' as const, label: 'Order Fulfillment', icon: PackageCheck },
+    { id: 'crm' as const, label: 'CRM Segments', icon: Users },
+    { id: 'analytics' as const, label: 'Sales Analytics', icon: Activity },
   ];
 
   return (
@@ -370,8 +370,8 @@ export default function SalesWorkspace() {
           </div>
         )}
 
-        {/* ── TAB 3: WARRANTY & CLAIMS ── */}
-        {activeTab === 'aftersales' && (
+        {/* ── TAB 3: ORDER FULFILLMENT ── */}
+        {activeTab === 'fulfill' && (
           <div className="flex-grow grid grid-cols-1 lg:grid-cols-3 gap-6 animate-slide-up-fade">
             
             {/* Warranty Claims table */}

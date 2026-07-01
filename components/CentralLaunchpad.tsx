@@ -41,6 +41,7 @@ export default function CentralLaunchpad() {
   const { 
     userRole, 
     setCurrentView,
+    setModuleTab,
     searchQuery
   } = useInventory();
 
@@ -64,8 +65,18 @@ export default function CentralLaunchpad() {
       setLoadingModule(null);
       if (mod.id === 'inventory') {
         setCurrentView('inventory');
+        setModuleTab('default');
       } else if (mod.id === 'procurement') {
         router.push('/procurement');
+      } else if (mod.id === 'supply_chain') {
+        setCurrentView('supply_chain');
+        setModuleTab('demand');
+      } else if (mod.id === 'sales') {
+        setCurrentView('sales');
+        setModuleTab('quotes');
+      } else if (mod.id === 'helpdesk') {
+        setCurrentView('helpdesk');
+        setModuleTab('tickets');
       } else {
         setSuccessToast(`Simulation completed: ${mod.title} sandbox interface initialized successfully!`);
         setTimeout(() => setSuccessToast(null), 3000);

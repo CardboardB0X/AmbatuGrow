@@ -305,7 +305,7 @@ export default function Sidebar() {
     if (activeTier1 === 'sales') {
       const salesMenu = [
         { id: 'quotes',      label: 'Customer Quotes',      icon: ClipboardList },
-        { id: 'aftersales',  label: 'Warranty & Claims',    icon: PackageCheck },
+        { id: 'fulfill',     label: 'Order Fulfillment',    icon: PackageCheck },
         { id: 'crm',         label: 'CRM Segments',         icon: Users },
         { id: 'analytics',   label: 'Sales Analytics',      icon: Activity },
       ];
