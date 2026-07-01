@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 
 import { useInventory } from '../context/InventoryContext';
 import { useSales } from '../context/SalesContext';
@@ -46,7 +46,8 @@ export default function CentralLaunchpad() {
     setCurrentView,
     setModuleTab,
     searchQuery,
-    items
+    items,
+    logs: itemsLogs
   } = useInventory();
   const salesContext = useSales();
   const procContext = useProcurement();
@@ -63,6 +64,7 @@ export default function CentralLaunchpad() {
   const [successToast, setSuccessToast] = useState<string | null>(null);
   const [syncing, setSyncing] = useState(false);
   const [lastSyncTime, setLastSyncTime] = useState('Just now');
+  const [logsBaseTime] = useState<number>(() => Date.now());
   
   // Real-time synced orders feed state
   const [syncedOrders, setSyncedOrders] = useState<SyncedOrder[]>([
@@ -209,6 +211,58 @@ export default function CentralLaunchpad() {
     m.description.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
+  const sortedLogs = useMemo(() => {
+    const base = logsBaseTime || 1782800000000;
+    return [
+      ...(itemsLogs || []).map(l => ({
+        module: 'INVENTORY',
+        color: 'text-slate-300',
+        tagColor: 'bg-slate-800 text-slate-300 border-slate-700',
+        timestamp: l.timestamp || 'Just now',
+        message: l.message,
+        unix: l.id ? parseInt(l.id.replace('LOG-', '')) || base : base
+      })),
+      ...(procContext?.procLogs || []).map((l, idx) => ({
+        module: 'PROCUREMENT',
+        color: 'text-amber-300',
+        tagColor: 'bg-amber-500/10 text-amber-300 border-amber-500/20',
+        timestamp: l.timestamp ? new Date(l.timestamp).toLocaleTimeString() : 'Active',
+        message: l.message,
+        unix: l.timestamp ? new Date(l.timestamp).getTime() : base - idx * 1000
+      })),
+      ...(scmContext?.scmLogs || []).map((l, idx) => ({
+        module: 'LOGISTICS',
+        color: 'text-cyan-300',
+        tagColor: 'bg-cyan-500/10 text-cyan-300 border-cyan-500/20',
+        timestamp: 'Telemetry',
+        message: l,
+        unix: base - idx * 1000 - 500
+      })),
+      ...(salesContext?.salesOrders || []).map(o => {
+        const timeVal = o.dateRaised ? new Date(o.dateRaised).getTime() : base;
+        return {
+          module: 'SALES',
+          color: 'text-emerald-300',
+          tagColor: 'bg-emerald-500/10 text-emerald-300 border-emerald-500/20',
+          timestamp: o.dateRaised ? new Date(o.dateRaised).toLocaleTimeString() : 'Just now',
+          message: `Sales Order processed: ${o.id} for ${o.customerName} (₱${o.total.toLocaleString()})`,
+          unix: timeVal
+        };
+      }),
+      ...(helpdeskContext?.tickets || []).map(t => {
+        const timeVal = t.dateCreated ? new Date(t.dateCreated).getTime() : base;
+        return {
+          module: 'HELPDESK',
+          color: 'text-rose-300',
+          tagColor: 'bg-rose-500/10 text-rose-300 border-rose-500/20',
+          timestamp: t.dateCreated ? new Date(t.dateCreated).toLocaleTimeString() : 'Just now',
+          message: `Support incident ${t.id} raised: "${t.issue}" (Priority: ${t.priority})`,
+          unix: timeVal
+        };
+      })
+    ].sort((a, b) => b.unix - a.unix).slice(0, 25);
+  }, [itemsLogs, procContext?.procLogs, scmContext?.scmLogs, salesContext?.salesOrders, helpdeskContext?.tickets, logsBaseTime]);
+
   return (
     <div className="flex-1 bg-slate-50 flex flex-col font-sans select-none relative overflow-y-auto min-h-0">
       
@@ -312,6 +366,37 @@ export default function CentralLaunchpad() {
                 No operational modules match your search filters.
               </div>
             )}
+          </div>
+
+          {/* Real-time System Logs Terminal Console */}
+          <div className="bg-white border border-slate-200/80 rounded-2xl p-5 shadow-sm space-y-3 flex flex-col mt-6">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <div className="w-2.5 h-2.5 bg-emerald-500 rounded-full animate-ping" />
+                <h4 className="text-[10px] font-black text-slate-800 uppercase tracking-widest">
+                  Ecosystem Live Console Terminal
+                </h4>
+              </div>
+              <span className="text-[8px] font-black text-slate-400 uppercase tracking-wider bg-slate-50 px-2 py-0.5 rounded border border-slate-200">
+                ACTIVE FEED (TICKING)
+              </span>
+            </div>
+
+            <div className="bg-slate-950 border border-slate-900 rounded-xl p-4 h-52 overflow-y-auto space-y-2 font-mono text-[9px] leading-relaxed shadow-inner">
+              {sortedLogs.map((log, idx) => (
+                <div key={idx} className="flex items-start gap-2.5 border-b border-slate-900 pb-1.5 last:border-b-0 last:pb-0">
+                  <span className="text-slate-500 shrink-0 font-bold">
+                    [{log.timestamp}]
+                  </span>
+                  <span className={`px-1.5 py-0.5 rounded border text-[7.5px] font-extrabold tracking-wider uppercase shrink-0 ${log.tagColor}`}>
+                    {log.module}
+                  </span>
+                  <span className={`font-semibold ${log.color}`}>
+                    {log.message}
+                  </span>
+                </div>
+              ))}
+            </div>
           </div>
         </div>
 

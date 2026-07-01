@@ -77,6 +77,7 @@ interface InventoryContextType {
   setModuleTab: (tab: string) => void;
   toast: { message: string; type: 'success' | 'error' | 'warning' | 'info' } | null;
   showToast: (message: string, type?: 'success' | 'error' | 'warning' | 'info') => void;
+  addSystemLog: (message: string, sku?: string) => void;
 }
 
 const InventoryContext = createContext<InventoryContextType | undefined>(undefined);
@@ -268,6 +269,19 @@ export const InventoryProvider: React.FC<{ children: React.ReactNode }> = ({ chi
   const showToast = (message: string, type: 'success' | 'error' | 'warning' | 'info' = 'success') => {
     setToast({ message, type });
     setTimeout(() => setToast(null), 3500);
+  };
+
+  const addSystemLog = (message: string, sku?: string) => {
+    const newLog = {
+      id: `LOG-${Math.floor(1000 + Math.random() * 9000)}`,
+      timestamp: new Date().toLocaleTimeString(),
+      message,
+      sku,
+      operator: 'System'
+    };
+    const updatedLogs = [newLog, ...logs];
+    setLogs(updatedLogs);
+    localStorage.setItem('erp_logs', JSON.stringify(updatedLogs));
   };
 
   const updateAuth = (auth: boolean) => {
@@ -693,6 +707,7 @@ export const InventoryProvider: React.FC<{ children: React.ReactNode }> = ({ chi
       setModuleTab,
       toast,
       showToast,
+      addSystemLog,
     }}>
       {children}
     </InventoryContext.Provider>

@@ -18,6 +18,7 @@ import SupportModal from '../components/SupportModal';
 
 import LoginGateway from '../components/LoginGateway';
 import CentralLaunchpad from '../components/CentralLaunchpad';
+import SimulationEngine from '../components/SimulationEngine';
 import ECommerceWorkspace from '../components/ecommerce/ECommerceWorkspace';
 import SCMWorkspace from '../components/scm/SCMWorkspace';
 import SalesWorkspace from '../components/sales/SalesWorkspace';
@@ -87,6 +88,7 @@ export default function Home() {
     <div className="flex h-screen w-screen overflow-hidden bg-slate-100 font-sans text-slate-900 antialiased animate-fade-in relative">
       {/* Column 1: Left Navigation Sidebar */}
       <Sidebar />
+      <SimulationEngine />
 
       {/* Main Container for Central Content and Right Widget Stack */}
       <div className="flex-1 flex flex-col min-w-0 h-full overflow-hidden">
