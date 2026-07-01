@@ -58,7 +58,9 @@ export default function Sidebar() {
     userRole, 
     setUserRole, 
     setIsAuthenticated, 
-    setCurrentView 
+    setCurrentView,
+    moduleTab,
+    setModuleTab
   } = invContext;
 
   // Active module state for Tier 1 selection
@@ -123,6 +125,19 @@ export default function Sidebar() {
         router.push('/');
       }
       setCurrentView(mod.id as 'launchpad' | 'inventory' | 'ecommerce' | 'supply_chain' | 'sales' | 'helpdesk');
+      
+      // Initialize default sub-navigation tab for each module
+      if (mod.id === 'supply_chain') {
+        setModuleTab('demand');
+      } else if (mod.id === 'sales') {
+        setModuleTab('quotes');
+      } else if (mod.id === 'helpdesk') {
+        setModuleTab('tickets');
+      } else if (mod.id === 'ecommerce') {
+        setModuleTab('orders');
+      } else if (mod.id === 'inventory') {
+        setModuleTab('default');
+      }
     }
   };
 
@@ -249,16 +264,25 @@ export default function Sidebar() {
             </div>
 
             <nav className="px-2 space-y-0.5">
-              {supplyMenu.map(item => (
-                <button
-                  key={item.id}
-                  onClick={() => showToast(`Accessing ${item.label} workspace... Sandbox simulation active.`)}
-                  className="w-full flex items-center gap-2.5 px-3.5 py-2.5 text-xs font-bold rounded-lg text-[#c2e4bb] hover:bg-[#3E7D32]/40 hover:text-white transition-all text-left cursor-pointer"
-                >
-                  <item.icon className="w-4 h-4 shrink-0 opacity-80" />
-                  <span className="truncate">{item.label}</span>
-                </button>
-              ))}
+              {supplyMenu.map(item => {
+                const isActive = moduleTab === item.id;
+                return (
+                  <button
+                    key={item.id}
+                    onClick={() => {
+                      setModuleTab(item.id);
+                    }}
+                    className={`w-full flex items-center gap-2.5 px-3.5 py-2.5 text-xs font-bold rounded-lg transition-all text-left cursor-pointer ${
+                      isActive
+                        ? 'bg-[#3E7D32] text-white shadow-inner font-extrabold'
+                        : 'text-[#c2e4bb] hover:bg-[#3E7D32]/40 hover:text-white'
+                    }`}
+                  >
+                    <item.icon className="w-4 h-4 shrink-0 opacity-80" />
+                    <span className="truncate">{item.label}</span>
+                  </button>
+                );
+              })}
             </nav>
           </div>
         </div>
@@ -286,16 +310,25 @@ export default function Sidebar() {
             </div>
 
             <nav className="px-2 space-y-0.5">
-              {salesMenu.map(item => (
-                <button
-                  key={item.id}
-                  onClick={() => showToast(`Accessing ${item.label} workspace... Sandbox simulation active.`)}
-                  className="w-full flex items-center gap-2.5 px-3.5 py-2.5 text-xs font-bold rounded-lg text-[#c2e4bb] hover:bg-[#3E7D32]/40 hover:text-white transition-all text-left cursor-pointer"
-                >
-                  <item.icon className="w-4 h-4 shrink-0 opacity-80" />
-                  <span className="truncate">{item.label}</span>
-                </button>
-              ))}
+              {salesMenu.map(item => {
+                const isActive = moduleTab === item.id;
+                return (
+                  <button
+                    key={item.id}
+                    onClick={() => {
+                      setModuleTab(item.id);
+                    }}
+                    className={`w-full flex items-center gap-2.5 px-3.5 py-2.5 text-xs font-bold rounded-lg transition-all text-left cursor-pointer ${
+                      isActive
+                        ? 'bg-[#3E7D32] text-white shadow-inner font-extrabold'
+                        : 'text-[#c2e4bb] hover:bg-[#3E7D32]/40 hover:text-white'
+                    }`}
+                  >
+                    <item.icon className="w-4 h-4 shrink-0 opacity-80" />
+                    <span className="truncate">{item.label}</span>
+                  </button>
+                );
+              })}
             </nav>
           </div>
         </div>
@@ -323,16 +356,25 @@ export default function Sidebar() {
             </div>
 
             <nav className="px-2 space-y-0.5">
-              {helpdeskMenu.map(item => (
-                <button
-                  key={item.id}
-                  onClick={() => showToast(`Accessing ${item.label} workspace... Sandbox simulation active.`)}
-                  className="w-full flex items-center gap-2.5 px-3.5 py-2.5 text-xs font-bold rounded-lg text-[#c2e4bb] hover:bg-[#3E7D32]/40 hover:text-white transition-all text-left cursor-pointer"
-                >
-                  <item.icon className="w-4 h-4 shrink-0 opacity-80" />
-                  <span className="truncate">{item.label}</span>
-                </button>
-              ))}
+              {helpdeskMenu.map(item => {
+                const isActive = moduleTab === item.id;
+                return (
+                  <button
+                    key={item.id}
+                    onClick={() => {
+                      setModuleTab(item.id);
+                    }}
+                    className={`w-full flex items-center gap-2.5 px-3.5 py-2.5 text-xs font-bold rounded-lg transition-all text-left cursor-pointer ${
+                      isActive
+                        ? 'bg-[#3E7D32] text-white shadow-inner font-extrabold'
+                        : 'text-[#c2e4bb] hover:bg-[#3E7D32]/40 hover:text-white'
+                    }`}
+                  >
+                    <item.icon className="w-4 h-4 shrink-0 opacity-80" />
+                    <span className="truncate">{item.label}</span>
+                  </button>
+                );
+              })}
             </nav>
           </div>
         </div>
@@ -360,21 +402,29 @@ export default function Sidebar() {
             </div>
 
             <nav className="px-2 space-y-0.5">
-              {ecomMenu.map(item => (
-                <button
-                  key={item.id}
-                  onClick={() => {
-                    if (isProcurementPage) {
-                      router.push('/');
-                    }
-                    setCurrentView('ecommerce');
-                  }}
-                  className="w-full flex items-center gap-2.5 px-3.5 py-2.5 text-xs font-bold rounded-lg text-[#c2e4bb] hover:bg-[#3E7D32]/40 hover:text-white transition-all text-left cursor-pointer"
-                >
-                  <item.icon className="w-4 h-4 shrink-0 opacity-80" />
-                  <span className="truncate">{item.label}</span>
-                </button>
-              ))}
+              {ecomMenu.map(item => {
+                const isActive = moduleTab === item.id;
+                return (
+                  <button
+                    key={item.id}
+                    onClick={() => {
+                      if (isProcurementPage) {
+                        router.push('/');
+                      }
+                      setCurrentView('ecommerce');
+                      setModuleTab(item.id);
+                    }}
+                    className={`w-full flex items-center gap-2.5 px-3.5 py-2.5 text-xs font-bold rounded-lg transition-all text-left cursor-pointer ${
+                      isActive
+                        ? 'bg-[#3E7D32] text-white shadow-inner font-extrabold'
+                        : 'text-[#c2e4bb] hover:bg-[#3E7D32]/40 hover:text-white'
+                    }`}
+                  >
+                    <item.icon className="w-4 h-4 shrink-0 opacity-80" />
+                    <span className="truncate">{item.label}</span>
+                  </button>
+                );
+              })}
             </nav>
           </div>
         </div>
@@ -535,7 +585,7 @@ export default function Sidebar() {
                      border border-emerald-300/40
                      flex items-center justify-center
                      text-white shadow-md
-                     hover:scale-110 transition-all duration-300 cursor-pointer"
+                     hover:scale-110 transition-[left,transform,background-color] duration-300 cubic-bezier(0.4, 0, 0.2, 1) will-change-[left] cursor-pointer"
           style={{
             left: isSidebarCollapsed ? '60px' : '268px',
           }}
@@ -548,7 +598,7 @@ export default function Sidebar() {
       </div>
 
       {/* ── TIER 2: SUB-NAVIGATION PANEL (COLLAPSIBLE) ── */}
-      <div className={`bg-[#2D6A24] text-white flex flex-col justify-between transition-all duration-300 ease-in-out overflow-hidden relative border-r border-[#23531B]/40 ${
+      <div className={`bg-[#2D6A24] text-white flex flex-col justify-between transition-[width] duration-300 cubic-bezier(0.4, 0, 0.2, 1) will-change-[width] overflow-hidden relative border-r border-[#23531B]/40 ${
         isSidebarCollapsed ? 'w-0 border-r-0' : 'w-52'
       }`}>
         

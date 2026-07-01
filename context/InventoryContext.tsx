@@ -73,6 +73,8 @@ interface InventoryContextType {
   setUserRole: (role: 'System Administrator' | 'Inventory Officer' | 'Procurement Officer') => void;
   currentView: 'launchpad' | 'inventory' | 'ecommerce' | 'supply_chain' | 'sales' | 'helpdesk';
   setCurrentView: (view: 'launchpad' | 'inventory' | 'ecommerce' | 'supply_chain' | 'sales' | 'helpdesk') => void;
+  moduleTab: string;
+  setModuleTab: (tab: string) => void;
 }
 
 const InventoryContext = createContext<InventoryContextType | undefined>(undefined);
@@ -258,6 +260,7 @@ export const InventoryProvider: React.FC<{ children: React.ReactNode }> = ({ chi
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [userRole, setUserRole] = useState<'System Administrator' | 'Inventory Officer' | 'Procurement Officer'>('System Administrator');
   const [currentView, setCurrentView] = useState<'launchpad' | 'inventory' | 'ecommerce' | 'supply_chain' | 'sales' | 'helpdesk'>('launchpad');
+  const [moduleTab, setModuleTab] = useState<string>('default');
 
   const updateAuth = (auth: boolean) => {
     setIsAuthenticated(auth);
@@ -678,6 +681,8 @@ export const InventoryProvider: React.FC<{ children: React.ReactNode }> = ({ chi
       setUserRole: updateRole,
       currentView,
       setCurrentView: updateView,
+      moduleTab,
+      setModuleTab,
     }}>
       {children}
     </InventoryContext.Provider>

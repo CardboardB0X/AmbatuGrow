@@ -51,8 +51,11 @@ interface PaymentReconciliation {
 }
 
 export default function ECommerceWorkspace() {
-  const { items: inventoryItems } = useInventory();
-  const [activeTab, setActiveTab] = useState<'orders' | 'stock' | 'pim' | 'payments'>('orders');
+  const { items: inventoryItems, moduleTab, setModuleTab } = useInventory();
+  const activeTab = (moduleTab === 'orders' || moduleTab === 'stock' || moduleTab === 'pim' || moduleTab === 'payments') 
+    ? moduleTab 
+    : 'orders';
+  const setActiveTab = (tab: 'orders' | 'stock' | 'pim' | 'payments') => setModuleTab(tab);
   const [searchQuery, setSearchQuery] = useState('');
   const [syncing, setSyncing] = useState(false);
   const [autoSync, setAutoSync] = useState(true);
