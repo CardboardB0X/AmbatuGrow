@@ -58,6 +58,7 @@ export default function Sidebar() {
     userRole, 
     setUserRole, 
     setIsAuthenticated, 
+    currentView,
     setCurrentView,
     moduleTab,
     setModuleTab
@@ -68,10 +69,18 @@ export default function Sidebar() {
   const [toastMessage, setToastMessage] = useState<string | null>(null);
   const [showUserMenu, setShowUserMenu] = useState(false);
 
-  // Sync active Tier 1 when route changes
+  // Sync active Tier 1 when route changes or active view changes
   useEffect(() => {
-    setActiveTier1(isProcurementPage ? 'procurement' : 'inventory');
-  }, [isProcurementPage]);
+    if (isProcurementPage) {
+      setActiveTier1('procurement');
+    } else {
+      if (currentView === 'launchpad') {
+        setActiveTier1('inventory'); // default back to inventory
+      } else {
+        setActiveTier1(currentView);
+      }
+    }
+  }, [isProcurementPage, currentView]);
 
   // Close dropdown on click outside
   useEffect(() => {
