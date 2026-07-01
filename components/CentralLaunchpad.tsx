@@ -4,6 +4,9 @@ import React, { useState, useEffect } from 'react';
 
 import { useInventory } from '../context/InventoryContext';
 import { useSales } from '../context/SalesContext';
+import { useProcurement } from '../context/ProcurementContext';
+import { useSCM } from '../context/SCMContext';
+import { useHelpdesk } from '../context/HelpdeskContext';
 import { 
   Layers, 
   ShoppingBag, 
@@ -42,9 +45,19 @@ export default function CentralLaunchpad() {
     userRole, 
     setCurrentView,
     setModuleTab,
-    searchQuery
+    searchQuery,
+    items
   } = useInventory();
   const salesContext = useSales();
+  const procContext = useProcurement();
+  const scmContext = useSCM();
+  const helpdeskContext = useHelpdesk();
+
+  const lowStockCount = items.filter(i => i.status === 'Active' && i.stockQty <= i.minQty).length;
+  const pendingApprovalsCount = procContext?.prs.filter(p => p.status === 'Pending L1 Approval' || p.status === 'Pending L2 Approval').length ?? 0;
+  const inTransitCount = scmContext?.shipments.filter(s => s.status === 'In Transit').length ?? 0;
+  const salesRevenue = salesContext?.totalRevenue ?? 0;
+  const openTicketsCount = helpdeskContext?.tickets.filter(t => t.status === 'Open').length ?? 0;
 
   const [loadingModule, setLoadingModule] = useState<string | null>(null);
   const [successToast, setSuccessToast] = useState<string | null>(null);
@@ -148,8 +161,8 @@ export default function CentralLaunchpad() {
       title: 'Inventory & Warehouse Management',
       description: 'Tracks item stock levels, executes transactions, maps zone locations, and evaluates alerts.',
       icon: Layers,
-      telemetryText: '2 Low Stock Warnings',
-      telemetryColor: 'bg-amber-100 text-amber-800 border-amber-200/50',
+      telemetryText: lowStockCount === 1 ? '1 Low Stock Warning' : `${lowStockCount} Low Stock Warnings`,
+      telemetryColor: lowStockCount > 0 ? 'bg-red-50 text-red-700 border-red-200' : 'bg-emerald-50 text-emerald-700 border-emerald-200',
       allowedRoles: ['System Administrator', 'Inventory Officer', 'Procurement Officer']
     },
     {
@@ -157,8 +170,8 @@ export default function CentralLaunchpad() {
       title: 'Procurement (Purchasing)',
       description: 'Initiates purchase requisitions, handles supplier profiles, tracks PO status, and performs 3-way matching.',
       icon: ShoppingBag,
-      telemetryText: '4 Pending Approvals',
-      telemetryColor: 'bg-blue-100 text-blue-800 border-blue-200/50',
+      telemetryText: pendingApprovalsCount === 1 ? '1 Pending Approval' : `${pendingApprovalsCount} Pending Approvals`,
+      telemetryColor: pendingApprovalsCount > 0 ? 'bg-amber-50 text-amber-700 border-amber-200' : 'bg-slate-50 text-slate-700 border-slate-200',
       allowedRoles: ['System Administrator', 'Inventory Officer', 'Procurement Officer']
     },
     {
@@ -166,8 +179,8 @@ export default function CentralLaunchpad() {
       title: 'Supply Chain Management',
       description: 'Conducts demand forecasting, coordinates supplier logistics, plans routes, and balances warehouse distribution.',
       icon: Truck,
-      telemetryText: '3 Active Shipments',
-      telemetryColor: 'bg-slate-100 text-slate-800 border-slate-200/50',
+      telemetryText: inTransitCount === 1 ? '1 Active Shipment' : `${inTransitCount} Active Shipments`,
+      telemetryColor: inTransitCount > 0 ? 'bg-blue-50 text-blue-700 border-blue-200 animate-pulse' : 'bg-slate-50 text-slate-700 border-slate-200',
       allowedRoles: ['System Administrator', 'Inventory Officer']
     },
     {
@@ -175,8 +188,8 @@ export default function CentralLaunchpad() {
       title: 'Sales Order Management',
       description: 'Orchestrates customer quotations, processes order fulfillments, manages CRM segments, and tracks performance metrics.',
       icon: LineChart,
-      telemetryText: '12 Open Quotations',
-      telemetryColor: 'bg-purple-100 text-purple-800 border-purple-200/50',
+      telemetryText: `₱${salesRevenue.toLocaleString()} Revenue`,
+      telemetryColor: 'bg-emerald-50 text-emerald-700 border-emerald-200',
       allowedRoles: ['System Administrator']
     },
     {
@@ -184,8 +197,8 @@ export default function CentralLaunchpad() {
       title: 'Customer Service / Helpdesk',
       description: 'Handles ticket systems, supports user self-service portals, archives communication histories, and tracks SLA rules.',
       icon: LifeBuoy,
-      telemetryText: '1 SLA Breach Warning',
-      telemetryColor: 'bg-red-100 text-red-800 border-red-200/50',
+      telemetryText: openTicketsCount === 1 ? '1 Open Ticket' : `${openTicketsCount} Open Tickets`,
+      telemetryColor: openTicketsCount > 0 ? 'bg-rose-50 text-rose-700 border-rose-200' : 'bg-slate-50 text-slate-700 border-slate-200',
       allowedRoles: ['System Administrator']
     }
   ];
