@@ -7,7 +7,7 @@ export interface Shipment {
   status: 'In Transit' | 'Delivered' | 'Processing';
   departureTime: string;
   eta: string;
-  coords: { x: number; y: number }; // coordinate markers for SVG routing
+  coords: { lat: number; lng: number }; // Latitude and Longitude for Leaflet API map
 }
 
 export interface ForecastItem {

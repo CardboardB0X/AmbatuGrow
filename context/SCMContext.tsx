@@ -25,9 +25,9 @@ export function SCMProvider({ children }: { children: React.ReactNode }) {
   ]);
 
   const [shipments, setShipments] = useState<Shipment[]>([
-    { id: 'SH-9920', carrier: 'LBC Express', origin: 'Indang Hub', destination: 'Dasma Warehouse', qty: 250, status: 'In Transit', departureTime: '2026-07-01T05:00:00Z', eta: '2026-07-01T09:00:00Z', coords: { x: 30, y: 40 } },
-    { id: 'SH-9921', carrier: 'Cavite Transport', origin: 'Manila Port', destination: 'Indang Warehouse', qty: 800, status: 'Delivered', departureTime: '2026-06-30T10:00:00Z', eta: '2026-07-01T01:30:00Z', coords: { x: 80, y: 75 } },
-    { id: 'SH-9922', carrier: 'J&T Cargo', origin: 'Silang Zone 3', destination: 'Indang Hub', qty: 150, status: 'Processing', departureTime: '2026-07-01T08:00:00Z', eta: '2026-07-02T14:00:00Z', coords: { x: 55, y: 25 } },
+    { id: 'SH-9920', carrier: 'LBC Express', origin: 'Indang Hub', destination: 'Dasma Warehouse', qty: 250, status: 'In Transit', departureTime: '2026-07-01T05:00:00Z', eta: '2026-07-01T09:00:00Z', coords: { lat: 14.24, lng: 120.90 } },
+    { id: 'SH-9921', carrier: 'Cavite Transport', origin: 'Manila Port', destination: 'Indang Warehouse', qty: 800, status: 'Delivered', departureTime: '2026-06-30T10:00:00Z', eta: '2026-07-01T01:30:00Z', coords: { lat: 14.1947, lng: 120.8814 } },
+    { id: 'SH-9922', carrier: 'J&T Cargo', origin: 'Silang Zone 3', destination: 'Indang Hub', qty: 150, status: 'Processing', departureTime: '2026-07-01T08:00:00Z', eta: '2026-07-02T14:00:00Z', coords: { lat: 14.2238, lng: 120.9742 } },
   ]);
 
   const [forecastItems] = useState<ForecastItem[]>([
@@ -36,26 +36,43 @@ export function SCMProvider({ children }: { children: React.ReactNode }) {
     { sku: 'AGRI-HONEY-012', name: 'Raw Honey', currentStock: 82, predictedDemand: 'Low', growthPercentage: -5, recommendedStock: 80 },
   ]);
 
-  // Simulate real-time coordinates animation for In Transit shipments
+  // Simulate real-time coordinates animation for In Transit shipments moving towards Dasma Node [14.3294, 120.9367]
   useEffect(() => {
     const interval = setInterval(() => {
       setShipments(prev =>
         prev.map(sh => {
           if (sh.status === 'In Transit') {
-            // Animate package moving along paths slowly
-            let nextX = sh.coords.x + (Math.random() * 2 - 0.8);
-            let nextY = sh.coords.y + (Math.random() * 2 - 0.8);
-            // Bound inside SVG box coordinates
-            if (nextX < 10) nextX = 10;
-            if (nextX > 90) nextX = 90;
-            if (nextY < 10) nextY = 10;
-            if (nextY > 90) nextY = 90;
-            return { ...sh, coords: { x: parseFloat(nextX.toFixed(2)), y: parseFloat(nextY.toFixed(2)) } };
+            const targetLat = 14.3294;
+            const targetLng = 120.9367;
+            const step = 0.0015; // increment step
+
+            let nextLat = sh.coords.lat;
+            let nextLng = sh.coords.lng;
+
+            if (Math.abs(targetLat - nextLat) > step) {
+              nextLat += (targetLat > nextLat ? 1 : -1) * step;
+            } else {
+              nextLat = targetLat;
+            }
+
+            if (Math.abs(targetLng - nextLng) > step) {
+              nextLng += (targetLng > nextLng ? 1 : -1) * step;
+            } else {
+              nextLng = targetLng;
+            }
+
+            // Loop back to Indang Hub [14.1947, 120.8814] if arrived to simulate constant motion
+            if (nextLat === targetLat && nextLng === targetLng) {
+              nextLat = 14.1947;
+              nextLng = 120.8814;
+            }
+
+            return { ...sh, coords: { lat: parseFloat(nextLat.toFixed(4)), lng: parseFloat(nextLng.toFixed(4)) } };
           }
           return sh;
         })
       );
-    }, 3000);
+    }, 2000);
 
     return () => clearInterval(interval);
   }, []);
@@ -65,7 +82,7 @@ export function SCMProvider({ children }: { children: React.ReactNode }) {
     const newSh: Shipment = {
       ...shipment,
       id,
-      coords: { x: 20 + Math.random() * 60, y: 20 + Math.random() * 60 }
+      coords: { lat: 14.1947, lng: 120.8814 } // start at Indang Hub
     };
     setShipments(prev => [newSh, ...prev]);
     setScmLogs(prev => [`Scheduled shipment ${id} via ${shipment.carrier}.`, ...prev]);

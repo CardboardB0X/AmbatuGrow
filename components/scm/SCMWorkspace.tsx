@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
+import nextDynamic from 'next/dynamic';
 import { useSCM } from '../../context/SCMContext';
 import { useInventory } from '../../context/InventoryContext';
 import { 
@@ -12,6 +13,8 @@ import {
   AlertTriangle,
   ArrowRight
 } from 'lucide-react';
+
+const MapComponent = nextDynamic(() => import('./MapComponent'), { ssr: false });
 
 export default function SCMWorkspace() {
   const { 
@@ -302,41 +305,8 @@ export default function SCMWorkspace() {
             <div className="lg:col-span-2 bg-white border border-slate-200/80 rounded-2xl p-5 shadow-xs flex flex-col min-h-[350px]">
               <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest block mb-4">Real-Time Transit Telemetry (GPS Tracker)</span>
               
-              <div className="flex-grow relative border border-slate-100 rounded-xl bg-slate-900 p-2 overflow-hidden flex items-end">
-                {/* SVG Map Layout */}
-                <svg className="w-full h-full" viewBox="0 0 100 100">
-                  {/* Grid layout */}
-                  <defs>
-                    <pattern id="grid" width="10" height="10" patternUnits="userSpaceOnUse">
-                      <path d="M 10 0 L 0 0 0 10" fill="none" stroke="rgba(255,255,255,0.05)" strokeWidth="0.5"/>
-                    </pattern>
-                  </defs>
-                  <rect width="100%" height="100%" fill="url(#grid)" />
-
-                  {/* Route Paths */}
-                  <path d="M 20 20 L 50 50 M 50 50 L 80 80 M 50 50 L 55 25" fill="none" stroke="rgba(16, 185, 129, 0.2)" strokeWidth="2.5" strokeDasharray="3 3" />
-
-                  {/* Regional nodes */}
-                  <circle cx="20" cy="20" r="3.5" fill="#f43f5e" />
-                  <text x="25" y="22" fill="#94a3b8" className="text-[5px] font-black uppercase tracking-wider">Indang Hub</text>
-
-                  <circle cx="50" cy="50" r="3.5" fill="#f43f5e" />
-                  <text x="55" y="52" fill="#94a3b8" className="text-[5px] font-black uppercase tracking-wider">Dasma Node</text>
-
-                  <circle cx="80" cy="80" r="3.5" fill="#f43f5e" />
-                  <text x="85" y="82" fill="#94a3b8" className="text-[5px] font-black uppercase tracking-wider">Silang Warehouse</text>
-
-                  {/* Active Cargo Carrier coordinate representations */}
-                  {shipments.map(sh => (
-                    <g key={sh.id}>
-                      <circle cx={sh.coords.x.toString()} cy={sh.coords.y.toString()} r="4.5" fill="#10b981" className="animate-ping opacity-60" />
-                      <circle cx={sh.coords.x.toString()} cy={sh.coords.y.toString()} r="3" fill="#10b981" />
-                      <text x={(sh.coords.x + 3).toString()} y={(sh.coords.y - 3).toString()} fill="#ffffff" className="text-[4px] font-bold">
-                        {sh.id} ({sh.carrier.split(' ')[0]})
-                      </text>
-                    </g>
-                  ))}
-                </svg>
+              <div className="flex-grow relative h-[320px] w-full min-h-[280px]">
+                <MapComponent shipments={shipments} />
               </div>
             </div>
 
