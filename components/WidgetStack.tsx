@@ -11,6 +11,18 @@ import {
   Edit3 
 } from 'lucide-react';
 
+const getRelativeTime = (timestamp: string) => {
+  if (!timestamp) return 'Just now';
+  const diff = Date.now() - new Date(timestamp).getTime();
+  const mins = Math.floor(diff / 60000);
+  if (mins < 1) return 'Just now';
+  if (mins < 60) return `${mins} min${mins > 1 ? 's' : ''} ago`;
+  const hours = Math.floor(mins / 60);
+  if (hours < 24) return `${hours} hour${hours > 1 ? 's' : ''} ago`;
+  const days = Math.floor(hours / 24);
+  return `${days} day${days > 1 ? 's' : ''} ago`;
+};
+
 export default function WidgetStack() {
   const {
     items,
@@ -188,10 +200,7 @@ export default function WidgetStack() {
                     </span>
 
                     <span className="text-[9px] text-slate-400 font-semibold mt-0.5">
-                      {log.message.includes('COMP-LPT-001') ? '2 mins ago by Admin' :
-                       log.message.includes('AGRI-SEED-042') ? '1 hour ago by Warehouse Staff' :
-                       log.message.includes('COMP-MNT-012') ? '3 hours ago by IT Dept' :
-                       'Just now by ' + log.operator}
+                      {getRelativeTime(log.timestamp)} by {log.operator}
                     </span>
                   </div>
                 </div>
