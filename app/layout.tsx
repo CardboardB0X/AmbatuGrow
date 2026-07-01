@@ -3,6 +3,9 @@ import { Inter } from "next/font/google";
 import "./globals.css";
 import { InventoryProvider } from "../context/InventoryContext";
 import { ProcurementProvider } from "../context/ProcurementContext";
+import { SCMProvider } from "../context/SCMContext";
+import { SalesProvider } from "../context/SalesContext";
+import { HelpdeskProvider } from "../context/HelpdeskContext";
 
 const inter = Inter({
   subsets: ["latin"],
@@ -29,7 +32,13 @@ export default function RootLayout({
       <body className="min-h-full bg-slate-50 text-slate-900 font-sans antialiased">
         <InventoryProvider>
           <ProcurementProvider>
-            {children}
+            <SCMProvider>
+              <SalesProvider>
+                <HelpdeskProvider>
+                  {children}
+                </HelpdeskProvider>
+              </SalesProvider>
+            </SCMProvider>
           </ProcurementProvider>
         </InventoryProvider>
       </body>
