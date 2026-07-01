@@ -189,41 +189,49 @@ export default function ECommerceWorkspace() {
       )}
 
       {/* ── TAB SELECTOR ── */}
-      <div className="flex border-b border-slate-200 flex-shrink-0 bg-white rounded-xl p-1 mb-5 shadow-xs">
+      <div className="flex gap-2 bg-slate-100 p-1.5 rounded-xl mb-5 flex-shrink-0 border border-slate-200/40 select-none">
         <button
           onClick={() => setActiveTab('orders')}
-          className={`flex-1 py-2 text-xs font-extrabold uppercase tracking-wider rounded-lg transition-colors cursor-pointer flex items-center justify-center gap-1.5 ${
-            activeTab === 'orders' ? 'bg-emerald-50 text-[#2D6A24]' : 'text-slate-500 hover:text-slate-800'
+          className={`flex-1 flex items-center justify-center gap-2 px-5 py-2.5 rounded-lg text-xs font-extrabold uppercase tracking-wider transition-all duration-200 cursor-pointer ${
+            activeTab === 'orders'
+              ? 'bg-white text-emerald-700 shadow-sm border border-emerald-500/10'
+              : 'text-slate-500 hover:text-slate-800 hover:bg-slate-50/50'
           }`}
         >
-          <FileText className="w-3.5 h-3.5" />
+          <FileText className={`w-3.5 h-3.5 ${activeTab === 'orders' ? 'text-emerald-600' : 'text-slate-400'}`} />
           <span>Order Sync</span>
         </button>
         <button
           onClick={() => setActiveTab('stock')}
-          className={`flex-1 py-2 text-xs font-extrabold uppercase tracking-wider rounded-lg transition-colors cursor-pointer flex items-center justify-center gap-1.5 ${
-            activeTab === 'stock' ? 'bg-emerald-50 text-[#2D6A24]' : 'text-slate-500 hover:text-slate-800'
+          className={`flex-1 flex items-center justify-center gap-2 px-5 py-2.5 rounded-lg text-xs font-extrabold uppercase tracking-wider transition-all duration-200 cursor-pointer ${
+            activeTab === 'stock'
+              ? 'bg-white text-emerald-700 shadow-sm border border-emerald-500/10'
+              : 'text-slate-500 hover:text-slate-800 hover:bg-slate-50/50'
           }`}
         >
-          <Layers className="w-3.5 h-3.5" />
+          <Layers className={`w-3.5 h-3.5 ${activeTab === 'stock' ? 'text-emerald-600' : 'text-slate-400'}`} />
           <span>Stock Updates</span>
         </button>
         <button
           onClick={() => setActiveTab('pim')}
-          className={`flex-1 py-2 text-xs font-extrabold uppercase tracking-wider rounded-lg transition-colors cursor-pointer flex items-center justify-center gap-1.5 ${
-            activeTab === 'pim' ? 'bg-emerald-50 text-[#2D6A24]' : 'text-slate-500 hover:text-slate-800'
+          className={`flex-1 flex items-center justify-center gap-2 px-5 py-2.5 rounded-lg text-xs font-extrabold uppercase tracking-wider transition-all duration-200 cursor-pointer ${
+            activeTab === 'pim'
+              ? 'bg-white text-emerald-700 shadow-sm border border-emerald-500/10'
+              : 'text-slate-500 hover:text-slate-800 hover:bg-slate-50/50'
           }`}
         >
-          <Database className="w-3.5 h-3.5" />
+          <Database className={`w-3.5 h-3.5 ${activeTab === 'pim' ? 'text-emerald-600' : 'text-slate-400'}`} />
           <span>PIM Catalog</span>
         </button>
         <button
           onClick={() => setActiveTab('payments')}
-          className={`flex-1 py-2 text-xs font-extrabold uppercase tracking-wider rounded-lg transition-colors cursor-pointer flex items-center justify-center gap-1.5 ${
-            activeTab === 'payments' ? 'bg-emerald-50 text-[#2D6A24]' : 'text-slate-500 hover:text-slate-800'
+          className={`flex-1 flex items-center justify-center gap-2 px-5 py-2.5 rounded-lg text-xs font-extrabold uppercase tracking-wider transition-all duration-200 cursor-pointer ${
+            activeTab === 'payments'
+              ? 'bg-white text-[#2D6A24] shadow-sm border border-emerald-500/10'
+              : 'text-slate-500 hover:text-slate-800 hover:bg-slate-50/50'
           }`}
         >
-          <CreditCard className="w-3.5 h-3.5" />
+          <CreditCard className={`w-3.5 h-3.5 ${activeTab === 'payments' ? 'text-emerald-600' : 'text-slate-400'}`} />
           <span>Customer & Payments</span>
         </button>
       </div>
