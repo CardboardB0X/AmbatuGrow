@@ -1,19 +1,39 @@
 'use client';
 
 import React, { useRef, useEffect } from 'react';
-import { usePathname } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 import { useInventory } from '../context/InventoryContext';
 import { useProcurement } from '../context/ProcurementContext';
-import { Search, Bell, Grid, AlertTriangle, Plus, ArrowRightLeft, Database } from 'lucide-react';
+import { useSCM } from '../context/SCMContext';
+import { useSales } from '../context/SalesContext';
+import { useHelpdesk } from '../context/HelpdeskContext';
+import { 
+  Search, 
+  Bell, 
+  Grid, 
+  Plus, 
+  Database, 
+  Truck, 
+  ClipboardList, 
+  LifeBuoy, 
+  ShoppingBag
+} from 'lucide-react';
 
 export default function Header() {
   const pathname = usePathname();
+  const router = useRouter();
   const isProcurementPage = pathname ? pathname.startsWith('/procurement') : false;
+  
   const procContext = useProcurement();
+  const scmContext = useSCM();
+  const salesContext = useSales();
+  const helpdeskContext = useHelpdesk();
 
   const {
     activeTab,
     currentView,
+    setCurrentView,
+    setModuleTab,
     searchQuery,
     setSearchQuery,
     items,
@@ -24,7 +44,6 @@ export default function Header() {
     setIsDrawerOpen,
     setDrawerMode,
     setEditingItem,
-    setIsTransferOpen,
     editItem,
     generateRequisitionOrder
   } = useInventory();
@@ -65,6 +84,14 @@ export default function Header() {
 
     if (currentView === 'launchpad') {
       return 'Central Application Launchpad';
+    } else if (currentView === 'supply_chain') {
+      return 'Supply Chain & Logistics Terminal';
+    } else if (currentView === 'sales') {
+      return 'Sales Order Management Terminal';
+    } else if (currentView === 'helpdesk') {
+      return 'Customer Support Helpdesk';
+    } else if (currentView === 'ecommerce') {
+      return 'E-Commerce Integration Suite';
     }
 
     switch (activeTab) {
@@ -93,10 +120,118 @@ export default function Header() {
         ...item,
         stockQty: item.maxQty
       });
-      // Generate requisition log too
       generateRequisitionOrder([{ sku, qty: reorderQty }]);
     }
   };
+
+  // Compile notifications across all modules
+  const notifications: {
+    id: string;
+    module: string;
+    title: string;
+    description: string;
+    time: string;
+    type: 'warning' | 'info' | 'success' | 'danger';
+    actionLabel?: string;
+    onAction?: () => void;
+  }[] = [];
+
+  // 1. Inventory Notifications (Low Stock warnings)
+  lowStockItems.forEach(item => {
+    notifications.push({
+      id: `inv-${item.sku}`,
+      module: 'Inventory',
+      title: `Low Stock Alert`,
+      description: `${item.sku} (${item.name}) is at ${item.stockQty} ${item.uom}.`,
+      time: 'Level Alert',
+      type: 'warning',
+      actionLabel: 'Quick Restock',
+      onAction: () => handleQuickReorder(item.sku)
+    });
+  });
+
+  // 2. Procurement Notifications (Pending approvals L1/L2)
+  procContext.prs
+    .filter(pr => pr.status === 'Pending L1 Approval' || pr.status === 'Pending L2 Approval')
+    .forEach(pr => {
+      notifications.push({
+        id: `proc-${pr.id}`,
+        module: 'Procurement',
+        title: `PR Pending Approval`,
+        description: `PR ${pr.id} raised by ${pr.department}. Cost: ₱${pr.totalEstimatedCost.toLocaleString()}.`,
+        time: pr.status === 'Pending L1 Approval' ? 'L1 Approval' : 'L2 Approval',
+        type: 'info',
+        actionLabel: 'View Requisitions',
+        onAction: () => {
+          if (!isProcurementPage) {
+            router.push('/procurement');
+          }
+          procContext.setActiveTab('Requisitions');
+        }
+      });
+    });
+
+  // 3. SCM Notifications (In Transit shipments)
+  scmContext.shipments
+    .filter(sh => sh.status === 'In Transit')
+    .forEach(sh => {
+      notifications.push({
+        id: `scm-${sh.id}`,
+        module: 'Supply Chain',
+        title: `Transit Dispatch Live`,
+        description: `${sh.id} (${sh.carrier}) en route: ${sh.origin} ➔ ${sh.destination}.`,
+        time: 'Live Tracking',
+        type: 'success',
+        actionLabel: 'Track Route',
+        onAction: () => {
+          if (isProcurementPage) {
+            router.push('/');
+          }
+          setCurrentView('supply_chain');
+          setModuleTab('route');
+        }
+      });
+    });
+
+  // 4. Sales Notifications (New unprocessed orders)
+  salesContext.salesOrders
+    .filter(o => o.status === 'Processed')
+    .forEach(o => {
+      notifications.push({
+        id: `sales-${o.id}`,
+        module: 'Sales',
+        title: `Fulfillment Dispatch`,
+        description: `Order ${o.id} for ${o.customerName} processed and ready for dispatch.`,
+        time: 'Fulfillment Ready',
+        type: 'info',
+        actionLabel: 'Dispatch',
+        onAction: () => {
+          salesContext.updateOrderStatus(o.id, 'Shipped');
+        }
+      });
+    });
+
+  // 5. Helpdesk Notifications (Open High Priority tickets)
+  helpdeskContext.tickets
+    .filter(t => t.status === 'Open' && t.priority === 'High')
+    .forEach(t => {
+      notifications.push({
+        id: `helpdesk-${t.id}`,
+        module: 'Helpdesk',
+        title: `SLA Priority Case`,
+        description: `Ticket ${t.id} from ${t.customerName} awaits agent response.`,
+        time: 'SLA Breach Threat',
+        type: 'danger',
+        actionLabel: 'View Ticket',
+        onAction: () => {
+          if (isProcurementPage) {
+            router.push('/');
+          }
+          setCurrentView('helpdesk');
+          setModuleTab('tickets');
+        }
+      });
+    });
 
   // Reset database back to default mock data
   const handleResetData = () => {
@@ -125,7 +260,7 @@ export default function Header() {
           type="text"
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
-          placeholder="Search inventory..."
+          placeholder="Search ERP modules..."
           className="w-full pl-9 pr-4 py-1.5 text-sm bg-white border border-slate-300 rounded-lg focus:outline-none focus:ring-1 focus:ring-[#2D6A24] focus:border-[#2D6A24] placeholder-slate-400 font-medium text-slate-700"
         />
         {searchQuery && (
@@ -153,7 +288,7 @@ export default function Header() {
             }`}
           >
             <Bell className="w-5 h-5" />
-            {lowStockItems.length > 0 && (
+            {notifications.length > 0 && (
               <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-red-500 rounded-full ring-2 ring-white"></span>
             )}
           </button>
@@ -163,36 +298,49 @@ export default function Header() {
             <div className="absolute right-0 mt-2 w-80 bg-white border border-slate-200 rounded-xl shadow-xl z-50 overflow-hidden animate-fade-in">
               <div className="px-4 py-3 bg-slate-50 border-b border-slate-100 flex items-center justify-between">
                 <span className="font-extrabold text-xs text-slate-800">Critical Alerts</span>
-                <span className="text-[10px] font-bold text-red-600 bg-red-50 px-2 py-0.5 rounded-full">
-                  {lowStockItems.length} Low Stock
+                <span className="text-[10px] font-bold text-red-600 bg-red-50 px-2.5 py-0.5 rounded-full">
+                  {notifications.length} Active
                 </span>
               </div>
               
-              <div className="max-h-64 overflow-y-auto divide-y divide-slate-100">
-                {lowStockItems.length === 0 ? (
+              <div className="max-h-80 overflow-y-auto divide-y divide-slate-100">
+                {notifications.length === 0 ? (
                   <div className="p-4 text-center text-slate-400 text-xs font-semibold">
-                    All stock levels are currently healthy!
+                    All system modules operating inside healthy safety boundaries.
                   </div>
                 ) : (
-                  lowStockItems.map((item) => (
-                    <div key={item.sku} className="p-3.5 flex flex-col gap-1.5 hover:bg-slate-50/50 transition-colors">
-                      <div className="flex justify-between items-start">
-                        <span className="font-extrabold text-slate-800 text-[11px]">{item.sku} ({item.name})</span>
-                        <span className="flex items-center gap-0.5 text-[10px] text-amber-600 font-bold">
-                          <AlertTriangle className="w-3.5 h-3.5 shrink-0" /> {item.stockQty} left
+                  notifications.map((alert) => (
+                    <div key={alert.id} className="p-3.5 flex flex-col gap-1.5 hover:bg-slate-50/50 transition-colors">
+                      <div className="flex justify-between items-center">
+                        <span className={`text-[8px] font-black uppercase px-2 py-0.5 rounded-full ${
+                          alert.type === 'warning' ? 'bg-amber-50 text-amber-700 border border-amber-200/40' :
+                          alert.type === 'danger' ? 'bg-red-50 text-red-700 border border-red-200/40' :
+                          alert.type === 'success' ? 'bg-emerald-50 text-emerald-700 border border-emerald-200/40' :
+                          'bg-blue-50 text-blue-700 border border-blue-200/40'
+                        }`}>
+                          {alert.module}
                         </span>
+                        <span className="text-[9px] text-slate-400 font-bold">{alert.time}</span>
                       </div>
-                      <p className="text-[10px] text-slate-400 font-medium leading-tight">
-                        Qty has dropped below safety safety stock level of {item.minQty} {item.uom}.
-                      </p>
-                      <div className="flex justify-end mt-1">
-                        <button
-                          onClick={() => handleQuickReorder(item.sku)}
-                          className="px-3 py-1 bg-[#2D6A24] hover:bg-[#23531B] text-white rounded text-[10px] font-bold uppercase tracking-wider transition-colors cursor-pointer"
-                        >
-                          Quick Restock (+{item.maxQty - item.stockQty})
-                        </button>
+                      <div className="flex flex-col gap-0.5">
+                        <span className="font-extrabold text-slate-800 text-[10px]">{alert.title}</span>
+                        <p className="text-[10px] text-slate-500 font-medium leading-tight">
+                          {alert.description}
+                        </p>
                       </div>
+                      {alert.actionLabel && alert.onAction && (
+                        <div className="flex justify-end mt-1">
+                          <button
+                            onClick={() => {
+                              alert.onAction?.();
+                              setIsNotificationsOpen(false);
+                            }}
+                            className="px-2.5 py-1 bg-[#2D6A24] hover:bg-[#23531B] text-white rounded text-[9px] font-black uppercase tracking-wider transition-colors cursor-pointer"
+                          >
+                            {alert.actionLabel}
+                          </button>
+                        </div>
+                      )}
                     </div>
                   ))
                 )}
@@ -217,14 +365,20 @@ export default function Header() {
 
           {/* Quick Menu Dropdown Panel */}
           {isQuickMenuOpen && (
-            <div className="absolute right-0 mt-2 w-56 bg-white border border-slate-200 rounded-xl shadow-xl z-50 overflow-hidden animate-fade-in">
+            <div className="absolute right-0 mt-2 w-64 bg-white border border-slate-200 rounded-xl shadow-xl z-50 overflow-hidden animate-fade-in">
               <div className="px-4 py-2 bg-slate-50 border-b border-slate-100 text-[10px] font-bold text-slate-400 uppercase tracking-widest">
-                Quick Actions
+                ERP Actions Center
               </div>
               
               <div className="p-1.5 space-y-0.5">
+                {/* 1. Inventory Action */}
                 <button
                   onClick={() => {
+                    if (isProcurementPage) {
+                      router.push('/');
+                    }
+                    setCurrentView('inventory');
+                    setModuleTab('default');
                     setDrawerMode('add');
                     setEditingItem(null);
                     setIsDrawerOpen(true);
@@ -235,20 +389,76 @@ export default function Header() {
                   <Plus className="w-4 h-4 text-emerald-700" />
                   <span>Add Inventory Item</span>
                 </button>
-                
+
+                {/* 2. Procurement Action */}
                 <button
                   onClick={() => {
-                    setIsTransferOpen(true);
+                    if (!isProcurementPage) {
+                      router.push('/procurement');
+                    }
+                    setTimeout(() => {
+                      procContext.setActiveTab('Requisitions');
+                      procContext.setIsPRDrawerOpen(true);
+                    }, 100);
                     setIsQuickMenuOpen(false);
                   }}
                   className="w-full flex items-center gap-2.5 px-3 py-2 text-left text-xs font-bold text-slate-600 hover:bg-slate-100 hover:text-slate-800 rounded-lg transition-colors cursor-pointer"
                 >
-                  <ArrowRightLeft className="w-4 h-4 text-blue-600" />
-                  <span>Relocate Stock</span>
+                  <ShoppingBag className="w-4 h-4 text-amber-600" />
+                  <span>Raise Purchase Req (PR)</span>
+                </button>
+
+                {/* 3. SCM Dispatch Action */}
+                <button
+                  onClick={() => {
+                    if (isProcurementPage) {
+                      router.push('/');
+                    }
+                    setCurrentView('supply_chain');
+                    setModuleTab('route');
+                    setIsQuickMenuOpen(false);
+                  }}
+                  className="w-full flex items-center gap-2.5 px-3 py-2 text-left text-xs font-bold text-slate-600 hover:bg-slate-100 hover:text-slate-800 rounded-lg transition-colors cursor-pointer"
+                >
+                  <Truck className="w-4 h-4 text-blue-600" />
+                  <span>Dispatch Cargo Carrier</span>
+                </button>
+
+                {/* 4. Sales Order Action */}
+                <button
+                  onClick={() => {
+                    if (isProcurementPage) {
+                      router.push('/');
+                    }
+                    setCurrentView('sales');
+                    setModuleTab('quotes');
+                    setIsQuickMenuOpen(false);
+                  }}
+                  className="w-full flex items-center gap-2.5 px-3 py-2 text-left text-xs font-bold text-slate-600 hover:bg-slate-100 hover:text-slate-800 rounded-lg transition-colors cursor-pointer"
+                >
+                  <ClipboardList className="w-4 h-4 text-purple-600" />
+                  <span>Issue Quotation / Order</span>
+                </button>
+
+                {/* 5. Support Incident Action */}
+                <button
+                  onClick={() => {
+                    if (isProcurementPage) {
+                      router.push('/');
+                    }
+                    setCurrentView('helpdesk');
+                    setModuleTab('tickets');
+                    setIsQuickMenuOpen(false);
+                  }}
+                  className="w-full flex items-center gap-2.5 px-3 py-2 text-left text-xs font-bold text-slate-600 hover:bg-slate-100 hover:text-slate-800 rounded-lg transition-colors cursor-pointer"
+                >
+                  <LifeBuoy className="w-4 h-4 text-rose-600" />
+                  <span>File Support Ticket</span>
                 </button>
                 
                 <div className="h-px bg-slate-100 my-1"></div>
 
+                {/* Database Reset Action */}
                 <button
                   onClick={handleResetData}
                   className="w-full flex items-center gap-2.5 px-3 py-2 text-left text-xs font-bold text-red-600 hover:bg-red-50 rounded-lg transition-colors cursor-pointer"
@@ -264,10 +474,12 @@ export default function Header() {
         {/* User Card */}
         <div className="flex items-center gap-3 ml-2">
           {/* Circular avatar */}
-          <div className="w-9 h-9 rounded-full bg-[#D1E2FF] flex-shrink-0 shadow-inner"></div>
+          <div className="w-9 h-9 rounded-full bg-[#D1E2FF] flex-shrink-0 shadow-inner flex items-center justify-center font-black text-xs text-[#2D6A24]">
+            AG
+          </div>
           
           <span className="text-xs font-bold text-slate-700 uppercase tracking-wider">
-            Inventory Officer
+            System Admin
           </span>
         </div>
 
