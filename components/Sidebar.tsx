@@ -24,12 +24,8 @@ import {
   Home,
   ShoppingBag,
   Truck,
-  DollarSign,
   LineChart,
   LifeBuoy,
-  Briefcase,
-  Globe,
-  BarChart3,
   Lock,
   Database,
   ShieldCheck,
@@ -97,18 +93,13 @@ export default function Sidebar() {
     setTimeout(() => setToastMessage(null), 3000);
   };
 
-  // Define 10 modules matching the Central Launchpad Bento Grid
+  // Define 5 modules matching the Central Launchpad Bento Grid
   const tier1Modules: Tier1Module[] = [
     { id: 'inventory',   title: 'Inventory & Warehouse',      icon: Package,     route: '/',            allowedRoles: ['System Administrator', 'Inventory Officer', 'Procurement Officer'] },
     { id: 'procurement', title: 'Procurement (Purchasing)',   icon: ShoppingBag, route: '/procurement', allowedRoles: ['System Administrator', 'Inventory Officer', 'Procurement Officer'] },
-    { id: 'supply_chain',title: 'Supply Chain Management',    icon: Truck,       route: '#',            allowedRoles: ['System Administrator'] },
-    { id: 'finance',     title: 'Finance & Accounting',       icon: DollarSign,  route: '#',            allowedRoles: ['System Administrator'] },
-    { id: 'hr',          title: 'Human Resources',            icon: Users,       route: '#',            allowedRoles: ['System Administrator'] },
+    { id: 'supply_chain',title: 'Supply Chain Management',    icon: Truck,       route: '#',            allowedRoles: ['System Administrator', 'Inventory Officer'] },
     { id: 'sales',       title: 'Sales Order Management',     icon: LineChart,   route: '#',            allowedRoles: ['System Administrator'] },
     { id: 'helpdesk',    title: 'Helpdesk Support',           icon: LifeBuoy,    route: '#',            allowedRoles: ['System Administrator'] },
-    { id: 'project_mgnt',title: 'Project Management',         icon: Briefcase,   route: '#',            allowedRoles: ['System Administrator'] },
-    { id: 'ecommerce',   title: 'E-Commerce Sync',            icon: Globe,       route: '#',            allowedRoles: ['System Administrator'] },
-    { id: 'bi',          title: 'Business BI Engine',         icon: BarChart3,   route: '#',            allowedRoles: ['System Administrator'] },
   ];
 
   const handleModuleClick = (mod: Tier1Module) => {
