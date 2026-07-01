@@ -8,6 +8,8 @@ export interface Shipment {
   departureTime: string;
   eta: string;
   coords: { lat: number; lng: number }; // Latitude and Longitude for Leaflet API map
+  sku?: string; // Associated product SKU being transported
+  destCoords?: { lat: number; lng: number }; // Dynamic target drop-off GPS destination coordinate
 }
 
 export interface ForecastItem {

@@ -2,6 +2,7 @@
 
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { Shipment, ForecastItem } from '../types/scm';
+import { useInventory } from './InventoryContext';
 
 interface SCMContextType {
   shipments: Shipment[];
@@ -17,6 +18,7 @@ interface SCMContextType {
 const SCMContext = createContext<SCMContextType | undefined>(undefined);
 
 export function SCMProvider({ children }: { children: React.ReactNode }) {
+  const { items, editItem } = useInventory();
   const [growthMultiplier, setGrowthMultiplier] = useState(1.0);
   const [scmLogs, setScmLogs] = useState<string[]>([
     'SCM System initialized.',
@@ -36,15 +38,15 @@ export function SCMProvider({ children }: { children: React.ReactNode }) {
     { sku: 'AGRI-HONEY-012', name: 'Raw Honey', currentStock: 82, predictedDemand: 'Low', growthPercentage: -5, recommendedStock: 80 },
   ]);
 
-  // Simulate real-time coordinates animation for In Transit shipments moving towards Dasma Node [14.3294, 120.9367]
+  // Simulate real-time coordinates animation for In Transit shipments moving towards their destCoords
   useEffect(() => {
     const interval = setInterval(() => {
       setShipments(prev =>
         prev.map(sh => {
           if (sh.status === 'In Transit') {
-            const targetLat = 14.3294;
-            const targetLng = 120.9367;
-            const step = 0.0015; // increment step
+            const targetLat = sh.destCoords?.lat ?? 14.3294;
+            const targetLng = sh.destCoords?.lng ?? 120.9367;
+            const step = 0.0035; // slightly faster movement for nicer simulation
 
             let nextLat = sh.coords.lat;
             let nextLng = sh.coords.lng;
@@ -61,10 +63,22 @@ export function SCMProvider({ children }: { children: React.ReactNode }) {
               nextLng = targetLng;
             }
 
-            // Loop back to Indang Hub [14.1947, 120.8814] if arrived to simulate constant motion
+            // If arrived, mark status as 'Delivered' and update destination stock
             if (nextLat === targetLat && nextLng === targetLng) {
-              nextLat = 14.1947;
-              nextLng = 120.8814;
+              if (sh.sku) {
+                const invItem = items.find(i => i.sku === sh.sku);
+                if (invItem) {
+                  editItem({
+                    ...invItem,
+                    stockQty: invItem.stockQty + sh.qty
+                  });
+                }
+              }
+              return { 
+                ...sh, 
+                status: 'Delivered',
+                coords: { lat: parseFloat(nextLat.toFixed(4)), lng: parseFloat(nextLng.toFixed(4)) }
+              };
             }
 
             return { ...sh, coords: { lat: parseFloat(nextLat.toFixed(4)), lng: parseFloat(nextLng.toFixed(4)) } };
@@ -75,17 +89,29 @@ export function SCMProvider({ children }: { children: React.ReactNode }) {
     }, 2000);
 
     return () => clearInterval(interval);
-  }, []);
+  }, [items, editItem]);
 
   const addShipment = (shipment: Omit<Shipment, 'id' | 'coords'>) => {
     const id = `SH-${Math.floor(1000 + Math.random() * 9000)}`;
     const newSh: Shipment = {
       ...shipment,
       id,
-      coords: { lat: 14.1947, lng: 120.8814 } // start at Indang Hub
+      coords: { lat: 14.1947, lng: 120.8814 } // Starts at Indang Hub
     };
+
+    // Deduct stock from the origin zone
+    if (shipment.sku) {
+      const invItem = items.find(i => i.sku === shipment.sku);
+      if (invItem) {
+        editItem({
+          ...invItem,
+          stockQty: Math.max(0, invItem.stockQty - shipment.qty)
+        });
+      }
+    }
+
     setShipments(prev => [newSh, ...prev]);
-    setScmLogs(prev => [`Scheduled shipment ${id} via ${shipment.carrier}.`, ...prev]);
+    setScmLogs(prev => [`Scheduled shipment ${id} via ${shipment.carrier} for SKU ${shipment.sku} (${shipment.qty} units).`, ...prev]);
   };
 
   const updateShipmentStatus = (id: string, status: Shipment['status']) => {

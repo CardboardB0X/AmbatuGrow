@@ -36,6 +36,9 @@ export default function SCMWorkspace() {
   const [newQty, setNewQty] = useState(100);
   const [newOrigin, setNewOrigin] = useState('Indang Hub');
   const [newDestination, setNewDestination] = useState('Dasma Warehouse');
+  const [destLat, setDestLat] = useState<number | null>(null);
+  const [destLng, setDestLng] = useState<number | null>(null);
+  const [dispatchSku, setDispatchSku] = useState(inventoryItems[0]?.sku || '');
 
   // Stock transfer states
   const [transferSku, setTransferSku] = useState(inventoryItems[0]?.sku || '');
@@ -46,16 +49,38 @@ export default function SCMWorkspace() {
 
   const handleScheduleShipment = (e: React.FormEvent) => {
     e.preventDefault();
+    if (!dispatchSku) {
+      alert("Please select a product SKU to dispatch.");
+      return;
+    }
+    const invItem = inventoryItems.find(i => i.sku === dispatchSku);
+    if (!invItem) {
+      alert("Selected product SKU not found in inventory.");
+      return;
+    }
+    if (invItem.stockQty < newQty) {
+      alert(`Insufficient stock! ${invItem.name} has only ${invItem.stockQty} units available at the origin Hub.`);
+      return;
+    }
+
     addShipment({
       carrier: newCarrier,
       qty: newQty,
       origin: newOrigin,
       destination: newDestination,
-      status: 'Processing',
+      status: 'In Transit',
       departureTime: new Date().toISOString(),
-      eta: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString()
+      eta: new Date(Date.now() + 4 * 60 * 60 * 1000).toISOString(),
+      sku: dispatchSku,
+      destCoords: destLat && destLng ? { lat: destLat, lng: destLng } : { lat: 14.3294, lng: 120.9367 }
     });
     setNewQty(100);
+  };
+
+  const handleSelectMapDestination = (lat: number, lng: number) => {
+    setDestLat(lat);
+    setDestLng(lng);
+    setNewDestination(`Custom Pin (${lat}, ${lng})`);
   };
 
   const handleTransfer = (e: React.FormEvent) => {
@@ -312,7 +337,7 @@ export default function SCMWorkspace() {
               <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest block mb-4">Real-Time Transit Telemetry (GPS Tracker)</span>
               
               <div className="flex-grow relative h-[320px] w-full min-h-[280px]">
-                <MapComponent shipments={shipments} />
+                <MapComponent shipments={shipments} onSelectDestination={handleSelectMapDestination} />
               </div>
             </div>
 
@@ -322,6 +347,19 @@ export default function SCMWorkspace() {
                 <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest block mb-2">Schedule Carrier Dispatch</span>
                 
                 <div className="space-y-3.5">
+                  <div className="flex flex-col gap-1">
+                    <label className="text-[9px] font-black text-slate-400 uppercase">Transport Product (SKU)</label>
+                    <select 
+                      value={dispatchSku} 
+                      onChange={(e) => setDispatchSku(e.target.value)}
+                      className="w-full bg-slate-50 border border-slate-200 rounded-lg p-2 text-xs font-bold text-slate-700"
+                    >
+                      {inventoryItems.map(item => (
+                        <option key={item.sku} value={item.sku}>{item.name} ({item.sku}) — Available: {item.stockQty}</option>
+                      ))}
+                    </select>
+                  </div>
+
                   <div className="flex flex-col gap-1">
                     <label className="text-[9px] font-black text-slate-400 uppercase">Carrier Service</label>
                     <select 
@@ -365,6 +403,17 @@ export default function SCMWorkspace() {
                       />
                     </div>
                   </div>
+
+                  {destLat && destLng && (
+                    <div className="p-2 bg-emerald-50 border border-emerald-200 rounded-lg text-[9px] font-bold text-emerald-800">
+                      Target GPS: {destLat}, {destLng} (Click map to relocate custom pin)
+                    </div>
+                  )}
+                  {!destLat && (
+                    <div className="text-[8px] font-bold text-slate-400 italic">
+                      💡 Click anywhere on the map to set a custom GPS destination waypoint.
+                    </div>
+                  )}
                 </div>
 
                 <button type="submit" className="w-full py-2 bg-[#2D6A24] hover:bg-[#23531B] text-white rounded-xl text-xs font-bold uppercase tracking-wider transition-colors cursor-pointer mt-2">
