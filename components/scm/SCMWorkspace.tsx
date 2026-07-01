@@ -23,8 +23,10 @@ export default function SCMWorkspace() {
     scmLogs 
   } = useSCM();
 
-  const { items: inventoryItems, zones } = useInventory();
-  const [activeTab, setActiveTab] = useState<'demand' | 'coordination' | 'logistics' | 'distribution'>('demand');
+  const { items: inventoryItems, zones, moduleTab, setModuleTab } = useInventory();
+  const activeTab = ['demand', 'logistics', 'route', 'distrib'].includes(moduleTab)
+    ? (moduleTab as 'demand' | 'logistics' | 'route' | 'distrib')
+    : 'demand';
 
   // Input states for new shipment schedule
   const [newCarrier, setNewCarrier] = useState('LBC Express');
@@ -62,9 +64,9 @@ export default function SCMWorkspace() {
   // SCM Subnavigation Configuration
   const tabs = [
     { id: 'demand' as const, label: 'Demand Forecasting', icon: LineChart },
-    { id: 'coordination' as const, label: 'Supplier Coordination', icon: Star },
-    { id: 'logistics' as const, label: 'Logistics & Routes', icon: Truck },
-    { id: 'distribution' as const, label: 'Distribution & Transfers', icon: ArrowLeftRight },
+    { id: 'logistics' as const, label: 'Supplier Coordination', icon: Star },
+    { id: 'route' as const, label: 'Logistics & Routes', icon: Truck },
+    { id: 'distrib' as const, label: 'Distribution & Transfers', icon: ArrowLeftRight },
   ];
 
   return (
@@ -89,7 +91,7 @@ export default function SCMWorkspace() {
           return (
             <button
               key={tab.id}
-              onClick={() => setActiveTab(tab.id)}
+              onClick={() => setModuleTab(tab.id)}
               className={`flex-1 flex items-center justify-center gap-2 px-5 py-2.5 rounded-lg text-xs font-extrabold uppercase tracking-wider transition-all duration-200 cursor-pointer ${
                 isActive
                   ? 'bg-white text-emerald-700 shadow-sm border border-emerald-500/10'
@@ -240,7 +242,7 @@ export default function SCMWorkspace() {
         )}
 
         {/* ── TAB 2: SUPPLIER COORDINATION ── */}
-        {activeTab === 'coordination' && (
+        {activeTab === 'logistics' && (
           <div className="flex-grow flex flex-col gap-6 animate-slide-up-fade">
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
               
@@ -293,7 +295,7 @@ export default function SCMWorkspace() {
         )}
 
         {/* ── TAB 3: LOGISTICS & ROUTES ── */}
-        {activeTab === 'logistics' && (
+        {activeTab === 'route' && (
           <div className="flex-grow grid grid-cols-1 lg:grid-cols-3 gap-6 animate-slide-up-fade">
             
             {/* Real-time SVG map */}
@@ -410,7 +412,7 @@ export default function SCMWorkspace() {
         )}
 
         {/* ── TAB 4: DISTRIBUTION & TRANSFERS ── */}
-        {activeTab === 'distribution' && (
+        {activeTab === 'distrib' && (
           <div className="flex-grow grid grid-cols-1 lg:grid-cols-3 gap-6 animate-slide-up-fade">
             
             {/* Stock transfer wizard */}
