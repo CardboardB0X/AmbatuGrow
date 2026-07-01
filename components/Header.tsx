@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useRef, useEffect } from 'react';
+import React, { useRef, useEffect, useState } from 'react';
 import { usePathname, useRouter } from 'next/navigation';
 import { useInventory } from '../context/InventoryContext';
 import { useProcurement } from '../context/ProcurementContext';
@@ -45,8 +45,13 @@ export default function Header() {
     setDrawerMode,
     setEditingItem,
     editItem,
-    generateRequisitionOrder
+    generateRequisitionOrder,
+    userRole,
+    setUserRole
   } = useInventory();
+
+  const [isRoleDropdownOpen, setIsRoleDropdownOpen] = useState(false);
+  const roleRef = useRef<HTMLDivElement>(null);
 
   const notificationsRef = useRef<HTMLDivElement>(null);
   const menuRef = useRef<HTMLDivElement>(null);
@@ -60,10 +65,13 @@ export default function Header() {
       if (menuRef.current && !menuRef.current.contains(event.target as Node)) {
         setIsQuickMenuOpen(false);
       }
+      if (roleRef.current && !roleRef.current.contains(event.target as Node)) {
+        setIsRoleDropdownOpen(false);
+      }
     }
     document.addEventListener('mousedown', handleClickOutside);
     return () => document.removeEventListener('mousedown', handleClickOutside);
-  }, [setIsNotificationsOpen, setIsQuickMenuOpen]);
+  }, [setIsNotificationsOpen, setIsQuickMenuOpen, setIsRoleDropdownOpen]);
 
   // Get view title based on active tab
   const getTerminalTitle = () => {
@@ -471,16 +479,62 @@ export default function Header() {
           )}
         </div>
 
-        {/* User Card */}
-        <div className="flex items-center gap-3 ml-2">
-          {/* Circular avatar */}
-          <div className="w-9 h-9 rounded-full bg-[#D1E2FF] flex-shrink-0 shadow-inner flex items-center justify-center font-black text-xs text-[#2D6A24]">
-            AG
-          </div>
-          
-          <span className="text-xs font-bold text-slate-700 uppercase tracking-wider">
-            System Admin
-          </span>
+        {/* User Card with Role Switcher Dropdown */}
+        <div className="relative" ref={roleRef}>
+          <button
+            onClick={() => setIsRoleDropdownOpen(!isRoleDropdownOpen)}
+            className="flex items-center gap-2.5 ml-2 hover:bg-slate-100 p-1.5 rounded-xl transition-colors cursor-pointer select-none"
+          >
+            {/* Circular avatar */}
+            <div className="w-8 h-8 rounded-full bg-[#D1E2FF] flex-shrink-0 shadow-inner flex items-center justify-center font-black text-[10px] text-[#2D6A24]">
+              {userRole === 'System Administrator' ? 'SA' : userRole === 'Inventory Officer' ? 'IO' : 'PO'}
+            </div>
+            
+            <div className="flex flex-col items-start leading-none text-left">
+              <span className="text-[10px] font-black text-slate-800 uppercase tracking-wider block">
+                {userRole === 'System Administrator' ? 'Admin Gateway' : userRole}
+              </span>
+              <span className="text-[8px] font-bold text-slate-400 block mt-0.5">
+                Click to switch role
+              </span>
+            </div>
+          </button>
+
+          {isRoleDropdownOpen && (
+            <div className="absolute right-0 mt-2.5 w-56 bg-white border border-slate-200/80 rounded-2xl p-2.5 shadow-xl z-55 animate-slide-up-fade">
+              <div className="px-3 py-1.5 border-b border-slate-100 mb-1.5">
+                <span className="block text-[8px] font-black text-slate-400 uppercase tracking-widest leading-none">Ecosystem Identity</span>
+                <span className="block text-[10px] font-bold text-slate-700 mt-1">Switch simulated role:</span>
+              </div>
+              
+              <div className="space-y-0.5">
+                {[
+                  'System Administrator',
+                  'Inventory Officer',
+                  'Procurement Officer'
+                ].map((role) => {
+                  const isActive = userRole === role;
+                  return (
+                    <button
+                      key={role}
+                      onClick={() => {
+                        setUserRole(role as 'System Administrator' | 'Inventory Officer' | 'Procurement Officer');
+                        setIsRoleDropdownOpen(false);
+                      }}
+                      className={`w-full flex items-center gap-2.5 px-3 py-2 text-left text-xs font-bold rounded-lg transition-colors cursor-pointer ${
+                        isActive
+                          ? 'bg-[#2D6A24] text-white'
+                          : 'text-slate-600 hover:bg-slate-100 hover:text-slate-800'
+                      }`}
+                    >
+                      <div className={`w-2 h-2 rounded-full ${isActive ? 'bg-white' : 'bg-slate-300'}`}></div>
+                      <span>{role}</span>
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+          )}
         </div>
 
       </div>

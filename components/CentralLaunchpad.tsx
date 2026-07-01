@@ -1,8 +1,9 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
+
 import { useInventory } from '../context/InventoryContext';
+import { useSales } from '../context/SalesContext';
 import { 
   Layers, 
   ShoppingBag, 
@@ -37,13 +38,13 @@ interface SyncedOrder {
 }
 
 export default function CentralLaunchpad() {
-  const router = useRouter();
   const { 
     userRole, 
     setCurrentView,
     setModuleTab,
     searchQuery
   } = useInventory();
+  const salesContext = useSales();
 
   const [loadingModule, setLoadingModule] = useState<string | null>(null);
   const [successToast, setSuccessToast] = useState<string | null>(null);
@@ -67,7 +68,8 @@ export default function CentralLaunchpad() {
         setCurrentView('inventory');
         setModuleTab('default');
       } else if (mod.id === 'procurement') {
-        router.push('/procurement');
+        setCurrentView('procurement');
+        setModuleTab('Requisitions');
       } else if (mod.id === 'supply_chain') {
         setCurrentView('supply_chain');
         setModuleTab('demand');
@@ -104,7 +106,22 @@ export default function CentralLaunchpad() {
       };
       
       setSyncedOrders(prev => [newOrder, ...prev.slice(0, 4)]);
-      setSuccessToast('E-Commerce multi-channel directories synchronized successfully!');
+
+      // Add the order to the sales database (triggers automatic inventory deduction!)
+      salesContext.addSalesOrder({
+        customerName: 'Shopify Checkout Client',
+        email: 'shopify-buyer@gmail.com',
+        items: [{
+          sku: 'AGRI-SEED-042',
+          name: 'Hybrid Rice Seeds',
+          qty: 1,
+          price: 1800
+        }],
+        discount: 0,
+        status: 'Processed'
+      });
+
+      setSuccessToast('E-Commerce multi-channel directories synchronized and deducted from active stocks!');
       setTimeout(() => setSuccessToast(null), 3000);
     }, 2000);
   };
