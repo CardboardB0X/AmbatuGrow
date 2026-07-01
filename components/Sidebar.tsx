@@ -27,10 +27,10 @@ import {
   LineChart,
   LifeBuoy,
   Lock,
-  Database,
-  ShieldCheck,
   Activity,
-  LogOut
+  LogOut,
+  Globe,
+  MessageSquare
 } from 'lucide-react';
 
 interface Tier1Module {
@@ -227,42 +227,118 @@ export default function Sidebar() {
       );
     }
 
-    // Default Sandboxed Modules View in Tier 2
-    const sandboxMenu = [
-      { id: 'db_node',   label: 'Database Node',    icon: Database },
-      { id: 'security',  label: 'Security Logs',    icon: ShieldCheck },
-      { id: 'telemetry', label: 'EOD Auto-Reports', icon: Activity },
-    ];
+    if (activeTier1 === 'supply_chain') {
+      const supplyMenu = [
+        { id: 'demand',      label: 'Demand Forecasting',    icon: LineChart },
+        { id: 'logistics',   label: 'Supplier Logistics',    icon: Truck },
+        { id: 'route',       label: 'Route Planner',         icon: MapPin },
+        { id: 'distrib',     label: 'Warehouse Distribution',icon: Package },
+      ];
 
-    const modName = tier1Modules.find(m => m.id === activeTier1)?.title || 'Virtual Workspace';
+      return (
+        <div className="flex-1 flex flex-col justify-between py-4">
+          <div className="space-y-4">
+            <div className="px-4">
+              <span className="block text-[8px] font-black text-emerald-300 uppercase tracking-widest leading-none">
+                Module core
+              </span>
+              <span className="block text-xs font-black text-white mt-1 uppercase tracking-wider truncate">
+                Supply Chain SCM
+              </span>
+            </div>
 
-    return (
-      <div className="flex-1 flex flex-col justify-between py-4">
-        <div className="space-y-4">
-          <div className="px-4">
-            <span className="block text-[8px] font-black text-amber-300 uppercase tracking-widest leading-none">
-              Sandbox Space
-            </span>
-            <span className="block text-xs font-black text-white mt-1 uppercase tracking-wider truncate">
-              {modName}
-            </span>
+            <nav className="px-2 space-y-0.5">
+              {supplyMenu.map(item => (
+                <button
+                  key={item.id}
+                  onClick={() => showToast(`Accessing ${item.label} workspace... Sandbox simulation active.`)}
+                  className="w-full flex items-center gap-2.5 px-3.5 py-2.5 text-xs font-bold rounded-lg text-[#c2e4bb] hover:bg-[#3E7D32]/40 hover:text-white transition-all text-left cursor-pointer"
+                >
+                  <item.icon className="w-4 h-4 shrink-0 opacity-80" />
+                  <span className="truncate">{item.label}</span>
+                </button>
+              ))}
+            </nav>
           </div>
-
-          <nav className="px-2 space-y-0.5">
-            {sandboxMenu.map(item => (
-              <button
-                key={item.id}
-                onClick={() => showToast(`Accessing virtual directory... sandbox container simulation active.`)}
-                className="w-full flex items-center gap-2.5 px-3.5 py-2.5 text-xs font-bold rounded-lg text-[#c2e4bb] hover:bg-[#3E7D32]/40 hover:text-white transition-all text-left cursor-pointer"
-              >
-                <item.icon className="w-4 h-4 shrink-0 opacity-80" />
-                <span className="truncate">{item.label}</span>
-              </button>
-            ))}
-          </nav>
         </div>
-      </div>
-    );
+      );
+    }
+
+    if (activeTier1 === 'sales') {
+      const salesMenu = [
+        { id: 'quotes',      label: 'Customer Quotes',      icon: ClipboardList },
+        { id: 'fulfill',     label: 'Order Fulfillment',    icon: PackageCheck },
+        { id: 'crm',         label: 'CRM Segments',         icon: Users },
+        { id: 'analytics',   label: 'Sales Analytics',      icon: Activity },
+      ];
+
+      return (
+        <div className="flex-1 flex flex-col justify-between py-4">
+          <div className="space-y-4">
+            <div className="px-4">
+              <span className="block text-[8px] font-black text-emerald-300 uppercase tracking-widest leading-none">
+                Module core
+              </span>
+              <span className="block text-xs font-black text-white mt-1 uppercase tracking-wider truncate">
+                Sales Control
+              </span>
+            </div>
+
+            <nav className="px-2 space-y-0.5">
+              {salesMenu.map(item => (
+                <button
+                  key={item.id}
+                  onClick={() => showToast(`Accessing ${item.label} workspace... Sandbox simulation active.`)}
+                  className="w-full flex items-center gap-2.5 px-3.5 py-2.5 text-xs font-bold rounded-lg text-[#c2e4bb] hover:bg-[#3E7D32]/40 hover:text-white transition-all text-left cursor-pointer"
+                >
+                  <item.icon className="w-4 h-4 shrink-0 opacity-80" />
+                  <span className="truncate">{item.label}</span>
+                </button>
+              ))}
+            </nav>
+          </div>
+        </div>
+      );
+    }
+
+    if (activeTier1 === 'helpdesk') {
+      const helpdeskMenu = [
+        { id: 'tickets',     label: 'Support Tickets',      icon: LifeBuoy },
+        { id: 'portal',      label: 'Self-Service Portal',  icon: Globe },
+        { id: 'comms',       label: 'Communications Log',   icon: MessageSquare },
+        { id: 'sla',         label: 'SLA Compliance',       icon: Settings },
+      ];
+
+      return (
+        <div className="flex-1 flex flex-col justify-between py-4">
+          <div className="space-y-4">
+            <div className="px-4">
+              <span className="block text-[8px] font-black text-emerald-300 uppercase tracking-widest leading-none">
+                Module core
+              </span>
+              <span className="block text-xs font-black text-white mt-1 uppercase tracking-wider truncate">
+                Helpdesk Support
+              </span>
+            </div>
+
+            <nav className="px-2 space-y-0.5">
+              {helpdeskMenu.map(item => (
+                <button
+                  key={item.id}
+                  onClick={() => showToast(`Accessing ${item.label} workspace... Sandbox simulation active.`)}
+                  className="w-full flex items-center gap-2.5 px-3.5 py-2.5 text-xs font-bold rounded-lg text-[#c2e4bb] hover:bg-[#3E7D32]/40 hover:text-white transition-all text-left cursor-pointer"
+                >
+                  <item.icon className="w-4 h-4 shrink-0 opacity-80" />
+                  <span className="truncate">{item.label}</span>
+                </button>
+              ))}
+            </nav>
+          </div>
+        </div>
+      );
+    }
+
+    return null;
   };
 
   return (
